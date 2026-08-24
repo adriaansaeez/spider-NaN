@@ -9,7 +9,7 @@
  * `t()` into the call sites, and neither has to wait for the other.
  *
  * DELIBERATELY NOT TRANSLATED, do not add keys for these:
- *  - "Web Slinger" — the game's name, a product name in both languages.
+ *  - "Spider-NaN" — the game's name, a product name in both languages.
  *  - MOUSE / W A S D / SPACE — physical key names, identical in both.
  *  - Nothing else. NOTE: the voice-line subtitles WERE excluded here on the
  *    grounds that they must match Spanish speech; the owner overruled that, and

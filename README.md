@@ -1,4 +1,4 @@
-# Web Slinger — spider-NaN
+# Spider-NaN
 
 A web-swinging game over a procedural city, built with **Three.js + TypeScript + Vite**, shipped alongside a **presentation site** documenting the entire construction process.
 
@@ -17,8 +17,8 @@ docker build -t spider-nan .
 docker run -p 8080:80 spider-nan
 ```
 
-- Game → <http://localhost:8080/>
-- Presentation → <http://localhost:8080/presentacion/>
+- Presentation (landing page) → <http://localhost:8080/>
+- Game → <http://localhost:8080/game>
 
 ### Local development
 
@@ -27,14 +27,19 @@ npm ci
 npm run dev      # http://localhost:5173
 ```
 
+- Presentation → <http://localhost:5173/>
+- Game → <http://localhost:5173/game/>
+
 ### Production build
 
 ```bash
 npm run build    # tsc --noEmit && vite build → dist/
-npm run preview  # http://localhost:4173
+npm run preview  # game at http://localhost:4173/game/
 ```
 
-> `npm run dev` / `npm run preview` serve the game. The presentation is served from `presentacion/index.html` and references media with `../` paths, so it displays in full in the Docker build (where `presentacion/`, `captures/`, `docs/` and `reference-pack/` sit as siblings at the served root).
+> `vite build` emits only the game (under the `/game/` base), so `npm run preview` serves the game and not the presentation. The final `/` + `/game` layout is assembled in the Dockerfile, which moves the bundle to `dist/game/` and drops `presentacion/index.html`, `captures/`, `docs/` and `reference-pack/` at the root.
+>
+> `npm run dev` mirrors that final layout: a dev-only plugin in `vite.config.ts` serves the presentation at `/` and the media directories at the root, so the presentation's absolute paths (`/game/assets/…`, `/captures/…`) resolve the same in dev as in the container.
 
 ---
 
@@ -53,23 +58,24 @@ npm run preview  # http://localhost:4173
 
 ## The presentation
 
-`/presentacion/` walks through the whole process: both construction loops, the procedural city, the day/night cycle, animation comparisons against reference footage, and the metrics and evidence captured automatically on every iteration. (UI available in Spanish and English — toggle it in the nav.)
+The landing page at `/` (source: `presentacion/index.html`) walks through the whole process: both construction loops, the procedural city, the day/night cycle, animation comparisons against reference footage, and the metrics and evidence captured automatically on every iteration. (UI available in Spanish and English — toggle it in the nav.)
 
 ---
 
 ## Structure
 
 ```
-index.html            game entry point
+index.html            game entry point (served at /game/)
 src/                  game source
   core/               Game, Renderer, HUD, telemetry
   city/               procedural generation, sky, day/night
   swing/              swing physics and anchors
   camera/  input/  fx/  score/  ui/  i18n/
 public/assets/        model, textures, audio, video
-presentacion/         presentation site
+presentacion/         presentation site (served at /)
 captures/ docs/ reference-pack/   media referenced by the presentation
-Dockerfile            multi-stage build → nginx
+vite.config.ts        base '/game/' + dev-only mirror of the served layout
+Dockerfile            multi-stage build → nginx (/ = presentation, /game = game)
 ```
 
 ---

@@ -310,7 +310,7 @@ export class MainMenu {
     if (this.mode === 'main') {
       this.root.innerHTML = `
         <section class="ui-panel" aria-label="${t('aria.mainMenu')}">
-          <div class="ui-title">Web Slinger</div>
+          <div class="ui-title">Spider-NaN</div>
           <div class="ui-actions">
             <button type="button" data-action="play">${t('menu.play')}</button>
             <button type="button" data-action="settings-main">${t('menu.settings')}</button>

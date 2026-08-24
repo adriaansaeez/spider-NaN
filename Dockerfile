@@ -9,13 +9,19 @@ COPY tsconfig.json vite.config.ts index.html ./
 COPY src/ ./src/
 COPY public/ ./public/
 
-# tsc --noEmit && vite build
+# tsc --noEmit && vite build  (vite base is '/game/')
 RUN npm run build
 
-# Vite only copies public/ into dist. The presentation page and the media it
-# references live at the dist root as siblings of /presentacion/, so its
-# ../-relative links resolve when served from /presentacion/.
-COPY presentacion/     ./dist/presentacion/
+# Vite emits the game bundle and the public/ copies at the dist root, but with
+# base '/game/' every referenced URL is /game/... — so the game document and its
+# assets have to physically move under dist/game/.
+RUN mkdir -p dist/game \
+ && mv dist/index.html dist/game/index.html \
+ && mv dist/assets     dist/game/assets
+
+# The presentation is the landing page at the served root, and the media it
+# references (/captures, /docs, /reference-pack) sits beside it as siblings.
+COPY presentacion/index.html ./dist/index.html
 COPY captures/         ./dist/captures/
 COPY docs/             ./dist/docs/
 COPY reference-pack/   ./dist/reference-pack/

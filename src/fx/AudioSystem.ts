@@ -397,7 +397,7 @@ export class AudioSystem {
       const el = new Audio();
       el.loop = true;
       el.preload = 'metadata';
-      el.src = '/assets/ost.mp3';
+      el.src = `${import.meta.env.BASE_URL}assets/ost.mp3`;
       // Routing the element into the graph takes over its output; from here on
       // `musicGain` is the only volume control for the track.
       this.ctx.createMediaElementSource(el).connect(this.musicGain);

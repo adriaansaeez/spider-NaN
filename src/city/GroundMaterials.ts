@@ -232,7 +232,7 @@ export function initGroundTextures(): void {
   const aniso = detectMaxAnisotropy();
   if (aniso > 1) console.log(`[ground] anisotropy: ${aniso}`);
 
-  loadGroundTexture('/assets/pavement.webp', 5385, 6154, aniso).then((t) => {
+  loadGroundTexture(`${import.meta.env.BASE_URL}assets/pavement.webp`, 5385, 6154, aniso).then((t) => {
     pavementTex = t;
     if (t) {
       console.log('[ground] pavement texture loaded');
@@ -242,7 +242,7 @@ export function initGroundTextures(): void {
     }
   });
 
-  loadGroundTexture('/assets/asphalt.webp', 3500, 4000, aniso).then((t) => {
+  loadGroundTexture(`${import.meta.env.BASE_URL}assets/asphalt.webp`, 3500, 4000, aniso).then((t) => {
     asphaltTex = t;
     if (t) {
       console.log('[ground] asphalt texture loaded');
