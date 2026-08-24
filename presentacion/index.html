@@ -160,6 +160,42 @@
   .hero-play-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
   .hero-play-btn .arrow { font-size: 22px; line-height: 1; }
 
+  /* ── DESKTOP-ONLY ──
+     The game takes pointer lock and moves with WASD, so it cannot be played on
+     a touch device. The badge is always visible (it is useful to know before
+     clicking); the note and the disabled state only appear where the device
+     actually cannot play, keyed off html.is-touch-device. */
+  .desktop-only-tag {
+    display: inline-flex; align-items: center;
+    padding: 3px 8px; border-radius: 4px;
+    font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    letter-spacing: .06em; text-transform: uppercase; white-space: nowrap;
+    background: rgba(11,14,19,0.18); color: #0b0e13; border: 1px solid rgba(11,14,19,0.28);
+  }
+  .cta-card .desktop-only-tag {
+    background: #2b240f; color: var(--gold); border-color: #6b5c1d;
+  }
+  .touch-note {
+    display: none; margin-top: 12px; max-width: 34em;
+    font-size: 13px; line-height: 1.5; color: var(--gold);
+  }
+  html.is-touch-device .touch-note { display: block; }
+  html.is-touch-device .hero-play-btn,
+  html.is-touch-device .cta-card.primary { cursor: not-allowed; }
+  html.is-touch-device .hero-play-btn {
+    background: var(--panel2); color: var(--dim);
+    box-shadow: 0 0 0 1px var(--line);
+  }
+  html.is-touch-device .hero-play-btn .desktop-only-tag {
+    background: transparent; color: var(--gold); border-color: #6b5c1d;
+  }
+  html.is-touch-device .hero-play-btn:hover {
+    background: var(--panel2); box-shadow: 0 0 0 1px var(--line); transform: none;
+  }
+  html.is-touch-device .cta-card.primary { opacity: .62; }
+  html.is-touch-device .cta-card.primary:hover { transform: none; }
+  .desktop-note { margin-top: 14px; font-size: 13px; color: var(--dim); }
+
   .scroll-hint {
     position: absolute; bottom: 24px;
     animation: bounce 2s infinite;
@@ -745,6 +781,33 @@
     transform: translateY(0);
   }
 </style>
+
+<!-- ═══════════════════════════════ DESKTOP-ONLY GUARD ═══════════════════════════════
+     The game takes pointer lock and moves with WASD, so a touch-only device cannot
+     play it. Capability detection, not user-agent sniffing: a tablet with a mouse
+     attached reports a fine pointer and is left alone. Runs in <head> so the page
+     never paints an enabled-looking Play button first. -->
+<script>
+(function() {
+  var m = window.matchMedia;
+  if (typeof m !== 'function') return;
+
+  var touchOnly = (navigator.maxTouchPoints || 0) > 0
+    && (m('(pointer: coarse)').matches || m('(hover: none)').matches)
+    && !m('(any-pointer: fine)').matches
+    && !m('(any-hover: hover)').matches;
+  if (!touchOnly) return;
+
+  document.documentElement.classList.add('is-touch-device');
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-desktop-only]').forEach(function(el) {
+      el.setAttribute('aria-disabled', 'true');
+      el.addEventListener('click', function(ev) { ev.preventDefault(); });
+    });
+  });
+})();
+</script>
 </head>
 <body>
 
@@ -808,10 +871,12 @@
       <span class="badge ok" data-i18n="badge.consoleclean">Console limpio</span>
       <span class="badge info">Three.js + TypeScript</span>
     </div>
-    <a class="hero-play-btn" href='/game/'>
+    <a class="hero-play-btn" href='/game/' data-desktop-only>
       <span data-i18n="inicio.play">Jugar</span>
+      <span class="desktop-only-tag" data-i18n="play.desktopOnly">Solo escritorio</span>
       <span class="arrow" aria-hidden="true">▸</span>
     </a>
+    <p class="touch-note" data-i18n="play.touchNote">Este dispositivo es táctil: el juego necesita teclado y ratón. Ábrelo en un ordenador para jugar.</p>
     <button id="sound-toggle" class="hero-sound-btn" type="button"
       aria-label="Silenciar el sonido de fondo" aria-pressed="false">
       <span class="icon" aria-hidden="true">🔊</span>
@@ -829,6 +894,7 @@
   <p data-i18n-html="intro.p1"><strong>Spider-NaN</strong> es un juego de balanceo con telarañas construido en <strong>Three.js</strong> desde cero, usando un <strong>gauntlet loop</strong>: un ciclo continuo de <em>build → critique → fix</em> en el que tres agentes de IA colaboran.</p>
   <p data-i18n-html="intro.p2"><strong>Opus</strong> actúa como orquestador y toma las decisiones arquitectónicas. <strong>DeepSeek V4 Flash</strong> construye cada sistema: ciudad procedural, física de balanceo, cámara, efectos y pulido visual. <strong>GPT-5.5</strong> critica la implementación contra material de referencia real, frame a frame, y rechaza cualquier resultado que no alcance calidad AAA.</p>
   <p data-i18n="intro.p3">Este diario documenta cada loop, sus iteraciones y las evidencias de rendimiento y determinismo que validaron el resultado final.</p>
+  <p class="desktop-note" data-i18n="intro.desktopOnly">Nota: el juego se controla con teclado y ratón (WASD + puntero capturado). No hay controles táctiles, así que sólo se puede jugar en un ordenador de escritorio o portátil.</p>
 </section>
 
 <!-- ════════════════════════════════════════════════ COMPARA VIDEOS ════════════════════════════════════════════════ -->
@@ -857,10 +923,12 @@
   <p data-i18n="explora.p">Dos ciclos completos de construcción, documentados fase por fase.</p>
 
   <div class="cta-stack">
-    <a class="cta-card primary" href='/game/'>
+    <a class="cta-card primary" href='/game/' data-desktop-only>
       <span>
         <h3 data-i18n="inicio.play">Jugar</h3>
+        <span class="desktop-only-tag" data-i18n="play.desktopOnly">Solo escritorio</span>
         <p class="meta" data-i18n="inicio.play.desc">Lanza el juego directamente: balanceo con telarañas en la ciudad procedural.</p>
+        <p class="touch-note" data-i18n="play.touchNote">Este dispositivo es táctil: el juego necesita teclado y ratón. Ábrelo en un ordenador para jugar.</p>
       </span>
       <span class="arrow" aria-hidden="true">▸</span>
     </a>
@@ -2235,11 +2303,14 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
   "intro.p1": "<strong>Spider-NaN</strong> is a web-swinging game built in <strong>Three.js</strong> from scratch, using a <strong>gauntlet loop</strong>: a continuous <em>build → critique → fix</em> cycle where three AI agents collaborate.",
   "intro.p2": "<strong>Opus</strong> acts as orchestrator and makes the architectural decisions. <strong>DeepSeek V4 Flash</strong> builds each system: procedural city, swing physics, camera, effects, and visual polish. <strong>GPT-5.5</strong> critiques the implementation against real reference material, frame by frame, and rejects anything that falls short of AAA quality.",
   "intro.p3": "This log documents every loop, its iterations, and the performance and determinism evidence that validated the final result.",
+  "intro.desktopOnly": "Note: the game is controlled with a keyboard and a mouse (WASD + pointer lock). There are no touch controls, so it can only be played on a desktop or laptop computer.",
   "label.explore": "Explore",
   "explora.h2": "Explore the Process",
   "explora.p": "Two complete build cycles, documented phase by phase.",
   "inicio.play": "Play",
   "inicio.play.desc": "Jump straight into the game: web-swinging through the procedural city.",
+  "play.desktopOnly": "Desktop only",
+  "play.touchNote": "This is a touch device: the game needs a keyboard and a mouse. Open it on a computer to play.",
   "cta.loop1.desc": "Procedural Manhattan city, web-swing physics, chase camera, state machine, and an automated evidence pipeline.",
   "cta.loop2.desc": "Authored building models, photographic day/night lighting, articulated hero animations, and visual effects.",
   "label.compare.videos": "Video comparison",

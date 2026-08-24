@@ -90,6 +90,17 @@ export interface StringTable {
   'prompt.web': string;
   'prompt.dash': string;
   'prompt.launch': string;
+
+  /**
+   * Device blocker. Shown INSTEAD of the game — the guard runs before the
+   * engine is imported — when the device has no mouse/keyboard, or when the
+   * browser cannot give us a WebGL context at all.
+   */
+  'blocked.heading': string;
+  'blocked.body': string;
+  'blocked.webglHeading': string;
+  'blocked.webglBody': string;
+  'blocked.back': string;
 }
 
 /** English is the source of truth: these are the exact strings shipping today. */
@@ -147,6 +158,12 @@ export const EN: StringTable = {
   'prompt.web': 'WEB',
   'prompt.dash': 'DASH',
   'prompt.launch': 'LAUNCH',
+
+  'blocked.heading': 'Keyboard and mouse required',
+  'blocked.body': 'Spider-NaN is played with the mouse and WASD, using pointer lock — there are no touch controls, so it will not run on a phone or a tablet. Open it on a desktop or laptop computer.',
+  'blocked.webglHeading': 'WebGL not available',
+  'blocked.webglBody': 'This browser cannot open a WebGL context, which the game needs to render the city. Try a recent desktop browser with hardware acceleration enabled.',
+  'blocked.back': 'Back to the presentation',
 };
 
 /** TRANSLATION BUILDER OWNS THIS OBJECT. Every value is '' until translated;
@@ -205,6 +222,12 @@ export const ES: StringTable = {
   'prompt.web': 'WEB',
   'prompt.dash': 'DASH',
   'prompt.launch': 'LANZAR',
+
+  'blocked.heading': 'Necesitas teclado y ratón',
+  'blocked.body': 'Spider-NaN se juega con el ratón y WASD, con el puntero capturado — no hay controles táctiles, así que no funciona en un móvil ni en una tablet. Ábrelo en un ordenador de escritorio o portátil.',
+  'blocked.webglHeading': 'WebGL no disponible',
+  'blocked.webglBody': 'Este navegador no puede abrir un contexto WebGL, que es lo que el juego necesita para dibujar la ciudad. Prueba con un navegador de escritorio reciente y la aceleración por hardware activada.',
+  'blocked.back': 'Volver a la presentación',
 };
 
 export const TABLES: Record<Lang, StringTable> = { en: EN, es: ES };
