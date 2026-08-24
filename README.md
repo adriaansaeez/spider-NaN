@@ -1,79 +1,79 @@
 # Web Slinger — spider-NaN
 
-Juego de balanceo con telarañas sobre una ciudad procedural, hecho en **Three.js + TypeScript + Vite**, acompañado de una **página de presentación** que documenta todo el proceso de construcción.
+A web-swinging game over a procedural city, built with **Three.js + TypeScript + Vite**, shipped alongside a **presentation site** documenting the entire construction process.
 
-El proyecto se construyó con un **gauntlet loop de agentes IA**: agentes constructores especializados por sistema (ciudad, físicas de balanceo, cámara, animación, audio, UI) y agentes **críticos independientes** que juzgaban el render real contra referencias visuales concretas, devolviendo al constructor con debilidades nombradas. Build → render → inspect → critique → improve, en bucle.
+The project was built with an **AI agent gauntlet loop**: specialized builder agents per system (city, swing physics, camera, animation, audio, UI) and independent **critic agents** judging the actual render against concrete visual references, sending the builder back with named weaknesses. Build → render → inspect → critique → improve, in a loop.
 
-**Modelos usados:** Opus 5 · DeepSeek V4 Flash · GPT-5.5
+**Models used:** Opus 5 · DeepSeek V4 Flash · GPT-5.5
 
 ---
 
-## Cómo ejecutarlo
+## How to run
 
-### Docker (recomendado)
+### Docker (recommended)
 
 ```bash
 docker build -t spider-nan .
 docker run -p 8080:80 spider-nan
 ```
 
-- Juego → <http://localhost:8080/>
-- Presentación → <http://localhost:8080/presentacion/>
+- Game → <http://localhost:8080/>
+- Presentation → <http://localhost:8080/presentacion/>
 
-### Desarrollo local
+### Local development
 
 ```bash
 npm ci
 npm run dev      # http://localhost:5173
 ```
 
-### Build de producción
+### Production build
 
 ```bash
 npm run build    # tsc --noEmit && vite build → dist/
 npm run preview  # http://localhost:4173
 ```
 
-> `npm run dev` / `npm run preview` sirven el juego. La presentación se sirve desde `presentacion/index.html` y referencia media con rutas `../`, por lo que se ve completa en el build de Docker (donde `presentacion/`, `captures/`, `docs/` y `reference-pack/` quedan como hermanos en la raíz servida).
+> `npm run dev` / `npm run preview` serve the game. The presentation is served from `presentacion/index.html` and references media with `../` paths, so it displays in full in the Docker build (where `presentacion/`, `captures/`, `docs/` and `reference-pack/` sit as siblings at the served root).
 
 ---
 
-## Controles
+## Controls
 
-| Acción | Tecla |
+| Action | Key |
 |---|---|
-| Dirigir / moverse | `WASD` |
-| Mirar | Ratón |
-| Lanzar telaraña | `Clic izquierdo` o `E` |
-| Dash / impulso | `Clic derecho` o `Shift` |
-| Picado (dive) | `S` o `Ctrl` |
-| Saltar / lanzarse | `Espacio` |
+| Steer / move | `WASD` |
+| Look | Mouse |
+| Shoot web | `Left click` or `E` |
+| Dash / boost | `Right click` or `Shift` |
+| Dive | `S` or `Ctrl` |
+| Jump / launch | `Space` |
 
 ---
 
-## La presentación
+## The presentation
 
-`/presentacion/` recorre el proceso completo: los dos loops de construcción, la ciudad procedural, el ciclo día/noche, las comparativas de animación contra referencia, las métricas y la evidencia capturada automáticamente en cada iteración.
+`/presentacion/` walks through the whole process: both construction loops, the procedural city, the day/night cycle, animation comparisons against reference footage, and the metrics and evidence captured automatically on every iteration. (UI available in Spanish and English — toggle it in the nav.)
 
 ---
 
-## Estructura
+## Structure
 
 ```
-index.html            entrada del juego
-src/                  código del juego
-  core/               Game, Renderer, HUD, telemetría
-  city/               generación procedural, cielo, día/noche
-  swing/              físicas de balanceo y anclajes
+index.html            game entry point
+src/                  game source
+  core/               Game, Renderer, HUD, telemetry
+  city/               procedural generation, sky, day/night
+  swing/              swing physics and anchors
   camera/  input/  fx/  score/  ui/  i18n/
-public/assets/        modelo, texturas, audio, vídeo
-presentacion/         página de presentación
-captures/ docs/ reference-pack/   media referenciada por la presentación
-Dockerfile            build multi-stage → nginx
+public/assets/        model, textures, audio, video
+presentacion/         presentation site
+captures/ docs/ reference-pack/   media referenced by the presentation
+Dockerfile            multi-stage build → nginx
 ```
 
 ---
 
-## Licencia
+## License
 
-MIT — © 2026 Adrián Sáez. Ver [LICENSE](LICENSE).
+MIT — © 2026 Adrián Sáez. See [LICENSE](LICENSE).
