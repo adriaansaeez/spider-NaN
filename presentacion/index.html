@@ -1,0 +1,2621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title data-i18n="page.title">Web Slinger — Diario de Bitácora</title>
+<style>
+  :root {
+    --bg: #0b0e13;
+    --bg2: #0f1318;
+    --panel: #151a22;
+    --panel2: #1a2029;
+    --line: #232b37;
+    --tx: #d8e2ec;
+    --dim: #7d8a99;
+    --ok: #34d399;
+    --fail: #ff6b6b;
+    --accent: #7aa2ff;
+    --accent2: #b08aff;
+    --gold: #e2b93b;
+    --glow: rgba(122,162,255,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--tx);
+    font: 15px/1.6 system-ui, -apple-system, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  code, .mono, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(11,14,19,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+    padding: 0 24px;
+    display: flex; align-items: center; gap: 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  nav .brand { font-weight: 700; font-size: 14px; letter-spacing: .04em; white-space: nowrap; padding: 12px 0; color: var(--accent); }
+  nav .nav-links { display: flex; gap: 24px; overflow-x: auto; scrollbar-width: none; }
+  nav .nav-links::-webkit-scrollbar { display: none; }
+  nav a { font-size: 12px; color: var(--dim); white-space: nowrap; padding: 12px 0; border-bottom: 2px solid transparent; transition: color .2s, border-color .2s; }
+  nav a:hover, nav a.active { color: var(--tx); border-bottom-color: var(--accent); text-decoration: none; }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    min-height: 80vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 80px 24px 60px;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(122,162,255,0.10), transparent 70%),
+                radial-gradient(ellipse 60% 40% at 30% 70%, rgba(176,138,255,0.06), transparent 60%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    font: 600 11px/1 ui-monospace, SFMono-Regular, monospace;
+    letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 16px;
+    padding: 4px 12px; border: 1px solid rgba(122,162,255,0.3); border-radius: 4px;
+    background: rgba(122,162,255,0.06);
+    animation: fadeDown .6s ease-out both;
+  }
+  .hero h1 {
+    font-size: clamp(48px, 10vw, 96px);
+    font-weight: 800;
+    letter-spacing: -.03em;
+    line-height: 1;
+    margin-bottom: 12px;
+    animation: fadeDown .6s .1s ease-out both;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero .subtitle {
+    font-size: clamp(16px, 2.5vw, 22px);
+    color: var(--dim);
+    max-width: 640px;
+    margin-bottom: 32px;
+    animation: fadeDown .6s .2s ease-out both;
+  }
+  .hero-meta {
+    display: flex; gap: 32px; flex-wrap: wrap; justify-content: center;
+    font-size: 13px; color: var(--dim);
+    animation: fadeDown .6s .3s ease-out both;
+  }
+  .hero-meta strong { color: var(--tx); font-weight: 600; }
+  .hero-badges {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 24px;
+    animation: fadeDown .6s .4s ease-out both;
+  }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;
+    letter-spacing: .04em;
+  }
+  .badge.ok { background: #0f2b24; color: var(--ok); border: 1px solid #1d5c4b; }
+  .badge.info { background: #0f1f33; color: var(--accent); border: 1px solid #1d3d6b; }
+  .badge.warn { background: #2b240f; color: var(--gold); border: 1px solid #6b5c1d; }
+
+  /* ── HERO SOUND TOGGLE ── */
+  .hero-sound-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: 16px;
+    padding: 8px 16px;
+    border: 1px solid rgba(122,162,255,0.3);
+    border-radius: 4px;
+    background: rgba(122,162,255,0.06);
+    color: var(--accent);
+    font: 600 11px/1 ui-monospace, SFMono-Regular, monospace;
+    letter-spacing: .14em; text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color .2s, background .2s, color .2s, box-shadow .2s;
+    animation: fadeDown .6s .5s ease-out both;
+  }
+  .hero-sound-btn:hover {
+    border-color: var(--accent);
+    background: rgba(122,162,255,0.14);
+    box-shadow: 0 0 20px rgba(122,162,255,0.12);
+  }
+  .hero-sound-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .hero-sound-btn.muted { color: var(--dim); border-color: var(--line); background: rgba(23,30,40,0.4); }
+
+  /* ── HERO PLAY CTA (Primary action) ── */
+  .hero-play-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 32px;
+    padding: 16px 42px;
+    border: none;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #0b0e13;
+    font: 700 18px/1 system-ui, -apple-system, 'Segoe UI', sans-serif;
+    letter-spacing: .06em;
+    text-decoration: none;
+    box-shadow: 0 0 0 1px rgba(122,162,255,0.45), 0 8px 30px rgba(122,162,255,0.28);
+    transition: transform .2s, box-shadow .2s, background .2s;
+    animation: fadeDown .6s .45s ease-out both;
+    cursor: pointer;
+  }
+  .hero-play-btn:hover {
+    background: #8fb2ff;
+    box-shadow: 0 0 42px rgba(122,162,255,0.55), 0 12px 40px rgba(122,162,255,0.38);
+    transform: translateY(-2px);
+    text-decoration: none;
+  }
+  .hero-play-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .hero-play-btn .arrow { font-size: 22px; line-height: 1; }
+
+  .scroll-hint {
+    position: absolute; bottom: 24px;
+    animation: bounce 2s infinite;
+    color: var(--dim); font-size: 20px;
+    z-index: 2;
+  }
+
+  /* ── HERO VIDEO BACKGROUND ── */
+  .hero .hero-video {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    min-width: 100%; min-height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+  .hero .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(11,14,19,0.78) 0%, rgba(11,14,19,0.45) 45%, rgba(11,14,19,0.88) 100%);
+    z-index: 1;
+    pointer-events: none;
+  }
+  .hero .hero-content {
+    position: relative;
+    z-index: 2;
+    display: flex; flex-direction: column; align-items: center;
+    width: 100%;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── SECTIONS ── */
+  main { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+  section {
+    margin-bottom: 72px;
+    animation: fadeIn .5s ease-out both;
+  }
+  section:nth-child(2) { animation-delay: .05s; }
+  section:nth-child(3) { animation-delay: .1s; }
+
+  .section-label {
+    font: 600 11px/1 ui-monospace, SFMono-Regular, monospace;
+    letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 8px;
+  }
+  h2 {
+    font-size: 28px; font-weight: 700; letter-spacing: -.02em;
+    margin-bottom: 16px;
+  }
+  h3 {
+    font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--tx);
+  }
+  p { color: var(--dim); margin-bottom: 12px; }
+  p strong { color: var(--tx); }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 12px;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+  }
+  .card h3 { font-size: 15px; margin-bottom: 6px; }
+  .card .meta { font-size: 12px; color: var(--dim); margin-bottom: 8px; }
+
+  /* ── CTA CARDS (INICIO TAB) ── */
+  .cta-stack {
+    display: grid;
+    gap: 12px;
+  }
+  .cta-card {
+    width: 100%;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    text-align: left;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px 24px;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    transition: border-color .2s, box-shadow .2s, transform .2s;
+  }
+  .cta-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(122,162,255,0.08);
+    transform: translateY(-2px);
+  }
+  .cta-card h3 { font-size: 15px; margin-bottom: 6px; color: var(--tx); }
+  .cta-card .meta { font-size: 13px; color: var(--dim); margin: 0; }
+  .cta-card .arrow { color: var(--accent); font-size: 20px; flex-shrink: 0; }
+
+  /* ── CTA CARD PRIMARY (Inicio: Jugar) ── */
+  .cta-card.primary {
+    border-color: rgba(122,162,255,0.55);
+    background: linear-gradient(180deg, rgba(122,162,255,0.10), rgba(122,162,255,0.04));
+    box-shadow: 0 0 0 1px rgba(122,162,255,0.15), 0 0 24px rgba(122,162,255,0.10);
+  }
+  .cta-card.primary:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 32px rgba(122,162,255,0.28);
+    transform: translateY(-2px);
+  }
+  .cta-card.primary h3 { color: var(--accent); }
+
+  /* ── PROMPT BLOCK ── */
+  .prompt-block {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .prompt-block::before {
+    content: attr(data-label);
+    position: absolute; top: 0; left: 0; right: 0;
+    background: var(--panel2);
+    border-bottom: 1px solid var(--line);
+    padding: 6px 16px;
+    font: 600 10px/1 ui-monospace, SFMono-Regular, monospace;
+    letter-spacing: .12em; color: var(--dim);
+  }
+  .prompt-text {
+    margin-top: 32px;
+    font: 14px/1.8 ui-monospace, SFMono-Regular, monospace;
+    color: var(--tx);
+    white-space: pre-wrap;
+  }
+  .prompt-text .hl { color: var(--accent); font-weight: 600; }
+  .prompt-annotation {
+    display: block;
+    margin: 4px 0 12px;
+    padding: 8px 12px;
+    background: rgba(122,162,255,0.06);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+    font: 12px/1.5 system-ui, sans-serif;
+    color: var(--dim);
+  }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-diagram {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 32px 24px;
+    overflow-x: auto;
+  }
+  .arch-flow {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    min-width: 800px;
+    justify-content: center;
+    flex-wrap: nowrap;
+  }
+  .arch-node {
+    text-align: center;
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+  .arch-node .icon {
+    width: 56px; height: 56px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 8px;
+    font-size: 24px;
+  }
+  .arch-node .label { font-size: 11px; font-weight: 600; color: var(--tx); }
+  .arch-node .sub { font-size: 10px; color: var(--dim); margin-top: 2px; }
+  .arch-arrow {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--dim); font-size: 20px; padding-top: 16px;
+    min-width: 32px; flex-shrink: 0;
+  }
+  .icon-human { background: rgba(226,185,59,0.15); border: 1px solid rgba(226,185,59,0.3); }
+  .icon-prompt { background: rgba(122,162,255,0.15); border: 1px solid rgba(122,162,255,0.3); }
+  .icon-build { background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.3); }
+  .icon-critic { background: rgba(255,107,107,0.15); border: 1px solid rgba(255,107,107,0.3); }
+  .icon-evidence { background: rgba(176,138,255,0.15); border: 1px solid rgba(176,138,255,0.3); }
+
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .agent-card {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px;
+    text-align: center;
+  }
+  .agent-card .name { font-size: 13px; font-weight: 700; color: var(--accent); }
+  .agent-card .role { font-size: 11px; color: var(--dim); margin-top: 4px; }
+  .agent-card .files { font: 10px/1.4 ui-monospace, SFMono-Regular, monospace; color: var(--dim); margin-top: 6px; }
+
+  /* ── TIMELINE (CARRUSEL) ── */
+  .timeline {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    padding: 16px 0 24px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) var(--panel);
+  }
+  .timeline::-webkit-scrollbar { height: 6px; }
+  .timeline::-webkit-scrollbar-track { background: var(--panel); border-radius: 3px; }
+  .timeline::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+  .timeline-item {
+    flex: 0 0 320px;
+    scroll-snap-align: start;
+    padding: 20px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .timeline-item:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(122,162,255,0.08);
+  }
+  .timeline-item::before { display: none; }
+  .timeline-item .phase-tag {
+    font: 600 10px/1 ui-monospace, SFMono-Regular, monospace;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 6px;
+  }
+  .timeline-item h3 { font-size: 16px; margin-bottom: 4px; }
+  .timeline-item .detail { font-size: 13px; color: var(--dim); }
+  .timeline-item .detail strong { color: var(--tx); }
+  .timeline-item .files-list {
+    font: 11px/1.6 ui-monospace, SFMono-Regular, monospace;
+    color: var(--dim);
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: var(--bg2);
+    border-radius: 4px;
+  }
+
+  /* ── METRICS DASHBOARD ── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  .metric-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+  .metric-card .value {
+    font-size: 28px; font-weight: 800; letter-spacing: -.02em;
+    color: var(--tx);
+  }
+  .metric-card .value.green { color: var(--ok); }
+  .metric-card .value.blue { color: var(--accent); }
+  .metric-card .label {
+    font-size: 11px; color: var(--dim); margin-top: 4px;
+    text-transform: uppercase; letter-spacing: .08em;
+  }
+
+  /* ── TABLE ── */
+  table.data {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+  table.data th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--panel2);
+    color: var(--dim);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    border-bottom: 1px solid var(--line);
+  }
+  table.data td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    color: var(--tx);
+  }
+  table.data tr:last-child td { border-bottom: none; }
+  table.data .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* ── GALLERY ── */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 10px;
+  }
+  .gallery figure {
+    margin: 0;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .gallery img, .gallery video {
+    width: 100%;
+    display: block;
+  }
+  .gallery figcaption {
+    padding: 6px 10px;
+    font-size: 11px;
+    color: var(--dim);
+  }
+
+  /* ── ITERATION DIAGRAM ── */
+  .iter-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 16px 0;
+  }
+  .iter-step {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .iter-step.build { background: rgba(52,211,153,0.12); color: var(--ok); border: 1px solid rgba(52,211,153,0.25); }
+  .iter-step.critique { background: rgba(255,107,107,0.12); color: var(--fail); border: 1px solid rgba(255,107,107,0.25); }
+  .iter-step.fix { background: rgba(226,185,59,0.12); color: var(--gold); border: 1px solid rgba(226,185,59,0.25); }
+  .iter-step.pass { background: rgba(52,211,153,0.20); color: var(--ok); border: 1px solid rgba(52,211,153,0.4); }
+  .iter-arrow { color: var(--dim); font-size: 16px; }
+
+  .iter-example {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+  .iter-example .tag {
+    font: 600 10px/1 ui-monospace, SFMono-Regular, monospace;
+    letter-spacing: .08em; color: var(--accent); margin-bottom: 8px;
+  }
+
+  /* ── LEARNING CARDS ── */
+  .learning-list { list-style: none; padding: 0; }
+  .learning-list li {
+    padding: 14px 18px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .learning-list .num {
+    font: 700 13px/1 ui-monospace, SFMono-Regular, monospace;
+    color: var(--accent);
+    min-width: 24px;
+    padding-top: 2px;
+  }
+  .learning-list .text { font-size: 14px; color: var(--tx); }
+  .learning-list .text strong { color: var(--accent); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 32px 24px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--dim);
+  }
+  footer a { color: var(--accent); }
+  footer .links { margin-bottom: 8px; }
+
+  /* ── TABS ── */
+  .tab-bar {
+    display: flex; gap: 0; flex-shrink: 0;
+  }
+  .tab-btn {
+    font: 600 12px/1 ui-monospace, SFMono-Regular, monospace;
+    letter-spacing: .06em; text-transform: uppercase;
+    padding: 12px 16px; border: none; cursor: pointer;
+    background: transparent; color: var(--dim);
+    border-bottom: 2px solid transparent;
+    transition: color .2s, border-color .2s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--tx); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── LANG SWITCH ── */
+  .lang-switch { display: flex; gap: 4px; flex-shrink: 0; margin-left: auto; }
+  .lang-btn {
+    font: 700 11px/1 ui-monospace, SFMono-Regular, monospace;
+    letter-spacing: .06em;
+    padding: 6px 10px; border-radius: 4px;
+    border: 1px solid var(--line);
+    background: transparent; color: var(--dim);
+    cursor: pointer;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+  .lang-btn:hover { color: var(--tx); border-color: var(--accent); }
+  .lang-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(122,162,255,0.08); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── LOOP 2 EXTRAS ── */
+  .iter-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700;
+    letter-spacing: .04em;
+  }
+  .iter-badge.pass { background: #0f2b24; color: var(--ok); border: 1px solid #1d5c4b; }
+  .iter-badge.fail { background: #33151a; color: var(--fail); border: 1px solid #6b2530; }
+  .iter-badge.partial { background: #2b240f; color: var(--gold); border: 1px solid #6b5c1d; }
+
+  .verdict-row {
+    display: flex; gap: 8px; align-items: center; margin-bottom: 6px;
+  }
+  .verdict-row .label { font-size: 13px; color: var(--tx); flex: 1; }
+
+  .compare-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .compare-grid figure {
+    margin: 0;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .compare-grid img {
+    width: 100%; display: block;
+  }
+  .compare-grid figcaption {
+    padding: 6px 10px; font-size: 11px; color: var(--dim);
+  }
+
+  .subsystem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .subsystem-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .subsystem-card .sys-tag {
+    font: 600 10px/1 ui-monospace, SFMono-Regular, monospace;
+    letter-spacing: .1em; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .subsystem-card h3 { font-size: 15px; margin-bottom: 6px; }
+  .subsystem-card .detail { font-size: 13px; color: var(--dim); }
+  .subsystem-card .detail strong { color: var(--tx); }
+  .subsystem-card .files-list {
+    font: 11px/1.6 ui-monospace, SFMono-Regular, monospace;
+    color: var(--dim); margin-top: 10px;
+    padding: 8px 12px; background: var(--bg2); border-radius: 4px;
+  }
+
+  .budget-table {
+    width: 100%; border-collapse: collapse;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; overflow: hidden; font-size: 13px;
+  }
+  .budget-table th, .budget-table td {
+    padding: 8px 14px; border-bottom: 1px solid var(--line); text-align: left;
+  }
+  .budget-table th {
+    background: var(--panel2); color: var(--dim);
+    font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+  }
+  .budget-table tr:last-child td { border-bottom: none; }
+  .budget-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .budget-table .pass { color: var(--ok); font-weight: 600; }
+  .budget-table .headroom { color: var(--dim); font-size: 11px; }
+
+  /* ── DEFINITIVO EXTRAS ── */
+  /* Comparación "Antes y Después": exactamente 2 figuras al lado. Reusa .compare-grid
+     para el estilo de figure/imagen; esta clase solo fija el número de columnas. */
+  .compare-split { grid-template-columns: 1fr 1fr; }
+  .arcade-shot {
+    width: 100%; display: block;
+    border: 1px solid var(--line); border-radius: 8px;
+  }
+
+  /* ── INICIO: VIDEO COMPARISON ── */
+  /* Dos videos loop lado a lado, recortados al centro donde siempre está el
+     héroe. El contenedor es relativo para posicionar el divisor "VS". */
+  .video-compare { position: relative; }
+  .video-compare video {
+    width: 100%;
+    display: block;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: center;
+    background: var(--bg2);
+  }
+  .vs-divider {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    display: flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--panel2);
+    border: 1px solid var(--line);
+    box-shadow: 0 0 0 4px rgba(11,14,19,0.6);
+    font: 700 11px/1 ui-monospace, SFMono-Regular, monospace;
+    letter-spacing: .05em;
+    color: var(--accent);
+    pointer-events: none;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    nav { padding: 0 12px; gap: 12px; flex-wrap: wrap; }
+    .tab-bar { width: 100%; }
+    .tab-btn { flex: 1; text-align: center; padding: 10px 8px; font-size: 11px; }
+    main { padding: 0 16px 60px; }
+    .hero { padding: 60px 16px 40px; min-height: 70vh; }
+    .card-grid { grid-template-columns: 1fr; }
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .gallery { grid-template-columns: repeat(2, 1fr); }
+    .agents-grid { grid-template-columns: repeat(2, 1fr); }
+    .arch-flow { min-width: auto; flex-direction: column; align-items: center; }
+    .arch-arrow { transform: rotate(90deg); padding: 4px 0; }
+    .subsystem-grid { grid-template-columns: 1fr; }
+    .compare-grid { grid-template-columns: repeat(2, 1fr); }
+    .compare-split { grid-template-columns: 1fr; }
+    .vs-divider { display: none; }
+  }
+
+  /* ── SCROLL ANIMATIONS ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .5s ease-out, transform .5s ease-out;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════ NAV ════════════════════════════════════════════ -->
+<nav>
+  <span class="brand">WEB SLINGER</span>
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="inicio" data-i18n="tab.inicio">Inicio</button>
+    <button class="tab-btn" data-tab="loop1" data-i18n="tab.loop1">Loop 1 — Core</button>
+    <button class="tab-btn" data-tab="loop2" data-i18n="tab.loop2">Loop 2 — Visual</button>
+    <button class="tab-btn" data-tab="definitive" data-i18n="tab.definitive">Definitivo</button>
+  </div>
+  <div class="nav-links">
+    <a href="#hero-inicio" class="nav-link inicio-link active" data-i18n="nav.inicio">Inicio</a>
+    <a href="#inicio-explora" class="nav-link inicio-link" data-i18n="nav.explorar">Explorar</a>
+    <a href="#hero" class="nav-link loop1-link" data-i18n="nav.inicio">Inicio</a>
+    <a href="#prompt" class="nav-link loop1-link" data-i18n="nav.prompt">Prompt</a>
+    <a href="#arquitectura" class="nav-link loop1-link" data-i18n="nav.arquitectura">Arquitectura</a>
+    <a href="#fases" class="nav-link loop1-link" data-i18n="nav.fases">Fases</a>
+    <a href="#iteracion" class="nav-link loop1-link" data-i18n="nav.iteracion">Iteración</a>
+    <a href="#metricas" class="nav-link loop1-link" data-i18n="nav.metricas">Métricas</a>
+    <a href="#referencia" class="nav-link loop1-link" data-i18n="nav.referencia">Referencia</a>
+    <a href="#capturas" class="nav-link loop1-link" data-i18n="nav.capturas">Capturas</a>
+    <a href="#hero2" class="nav-link loop2-link" data-i18n="nav.inicio">Inicio</a>
+    <a href="#fases2" class="nav-link loop2-link" data-i18n="nav.fases">Fases</a>
+    <a href="#iteracion2" class="nav-link loop2-link" data-i18n="nav.iteracion">Iteración</a>
+    <a href="#metricas2" class="nav-link loop2-link" data-i18n="nav.metricas">Métricas</a>
+    <a href="#evidencia2" class="nav-link loop2-link" data-i18n="nav.evidencia">Evidencia</a>
+    <a href="#hero-definitive" class="nav-link definitive-link" data-i18n="nav.inicio">Inicio</a>
+    <a href="#arcade" class="nav-link definitive-link" data-i18n="nav.arcade">Arcade</a>
+    <a href="#frases" class="nav-link definitive-link" data-i18n="nav.frases">Frases</a>
+    <a href="#sky" class="nav-link definitive-link" data-i18n="nav.cielo">Cielo</a>
+    <a href="#config" class="nav-link definitive-link" data-i18n="nav.config">Config</a>
+    <a href="#compare" class="nav-link definitive-link" data-i18n="nav.comparar">Antes/Después</a>
+  </div>
+  <div class="lang-switch" role="group" aria-label="Language selector / Selector de idioma">
+    <button type="button" class="lang-btn active" data-lang="es" aria-pressed="true">ES</button>
+    <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════ INICIO: OVERVIEW ════════════════════════════════════════════ -->
+<div class="tab-panel active" id="panel-inicio">
+
+<!-- ════════════════════════════════════════════ HERO ════════════════════════════════════════════ -->
+<section class="hero" id="hero-inicio">
+  <video class="hero-video" src="../assets/hero-video.mov" autoplay muted loop playsinline preload="auto"></video>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-tag" data-i18n="hero.tag">NaN Gauntlet Loop · Agosto 2026</div>
+    <h1>Web <span>Slinger</span></h1>
+    <p class="subtitle" data-i18n-html="hero.subtitle.inicio">Juego de balanceo con telarañas en Three.js, creado con un gauntlet loop de agentes IA: <strong>Opus orquesta</strong>, <strong>DeepSeek V4 Flash construye</strong>, <strong>GPT-5.5 critica</strong>.</p>
+    <div class="hero-meta">
+      <span data-i18n-html="hero.meta.orchestrator"><strong>Opus 5</strong> orquestador</span>
+      <span data-i18n-html="hero.meta.builder"><strong>DeepSeek V4 Flash</strong> constructor</span>
+      <span><strong>GPT-5.5</strong> critic</span>
+    </div>
+    <div class="hero-badges">
+      <span class="badge ok">120 fps</span>
+      <span class="badge ok" data-i18n="badge.determinism">Determinismo PASS</span>
+      <span class="badge ok" data-i18n="badge.consoleclean">Console limpio</span>
+      <span class="badge info">Three.js + TypeScript</span>
+    </div>
+    <a class="hero-play-btn" href='../'>
+      <span data-i18n="inicio.play">Jugar</span>
+      <span class="arrow" aria-hidden="true">▸</span>
+    </a>
+    <button id="sound-toggle" class="hero-sound-btn" type="button"
+      aria-label="Silenciar el sonido de fondo" aria-pressed="false">
+      <span class="icon" aria-hidden="true">🔊</span>
+      <span class="label">SONIDO ON</span>
+    </button>
+  </div>
+  <div class="scroll-hint">↓</div>
+</section>
+
+<main>
+<!-- ════════════════════════════════════════════ INTRO ══════════════════════════════════════════ -->
+<section id="inicio-intro" class="reveal">
+  <div class="section-label" data-i18n="label.about">Sobre el proyecto</div>
+  <h2 data-i18n="intro.h2">Diario de Construcción</h2>
+  <p data-i18n-html="intro.p1"><strong>Web Slinger</strong> es un juego de balanceo con telarañas construido en <strong>Three.js</strong> desde cero, usando un <strong>gauntlet loop</strong>: un ciclo continuo de <em>build → critique → fix</em> en el que tres agentes de IA colaboran.</p>
+  <p data-i18n-html="intro.p2"><strong>Opus</strong> actúa como orquestador y toma las decisiones arquitectónicas. <strong>DeepSeek V4 Flash</strong> construye cada sistema: ciudad procedural, física de balanceo, cámara, efectos y pulido visual. <strong>GPT-5.5</strong> critica la implementación contra material de referencia real, frame a frame, y rechaza cualquier resultado que no alcance calidad AAA.</p>
+  <p data-i18n="intro.p3">Este diario documenta cada loop, sus iteraciones y las evidencias de rendimiento y determinismo que validaron el resultado final.</p>
+</section>
+
+<!-- ════════════════════════════════════════════════ COMPARA VIDEOS ════════════════════════════════════════════════ -->
+<section id="inicio-compara" class="reveal">
+  <div class="section-label" data-i18n="label.compare.videos">Comparación en video</div>
+  <h2 data-i18n="inicio.compara.h2">Antes y Después — en movimiento</h2>
+  <p data-i18n="inicio.compara.p">El primer metraje registrado del juego frente al resultado definitivo tras el gauntlet loop: la misma cámara persiguiendo al mismo héroe, pero en una ciudad que dejó de ser cajas grises.</p>
+
+  <div class="compare-grid compare-split video-compare">
+    <figure>
+      <video src="../assets/old-version-video.mov" autoplay muted loop playsinline preload="metadata"></video>
+      <figcaption data-i18n="inicio.compara.left">Versión inicial — Primer Loop</figcaption>
+    </figure>
+    <span class="vs-divider" aria-hidden="true">VS</span>
+    <figure>
+      <video src="../assets/hero-video.mov" autoplay muted loop playsinline preload="metadata"></video>
+      <figcaption data-i18n="inicio.compara.right">Versión definitiva — Post-Gauntlet</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ EXPLORA ════════════════════════════════════════ -->
+<section id="inicio-explora" class="reveal">
+  <div class="section-label" data-i18n="label.explore">Explorar</div>
+  <h2 data-i18n="explora.h2">Explora el Proceso</h2>
+  <p data-i18n="explora.p">Dos ciclos completos de construcción, documentados fase por fase.</p>
+
+  <div class="cta-stack">
+    <a class="cta-card primary" href='../'>
+      <span>
+        <h3 data-i18n="inicio.play">Jugar</h3>
+        <p class="meta" data-i18n="inicio.play.desc">Lanza el juego directamente: balanceo con telarañas en la ciudad procedural.</p>
+      </span>
+      <span class="arrow" aria-hidden="true">▸</span>
+    </a>
+    <button class="cta-card" type="button" data-tab="loop1">
+      <span>
+        <h3>Loop 1 — Core</h3>
+        <p class="meta" data-i18n-html="cta.loop1.desc">Ciudad procedural Manhattan, física de balanceo con telaraña, cámara chase, máquina de estados y pipeline de evidencia automatizado.</p>
+      </span>
+      <span class="arrow">→</span>
+    </button>
+    <button class="cta-card" type="button" data-tab="loop2">
+      <span>
+        <h3>Loop 2 — Visual</h3>
+        <p class="meta" data-i18n-html="cta.loop2.desc">Modelado de edificios authored, iluminación día/noche fotográfica, animaciones articuladas del héroe y efectos visuales.</p>
+      </span>
+      <span class="arrow">→</span>
+    </button>
+  </div>
+</section>
+</main>
+</div><!-- /tab-panel inicio -->
+
+<!-- ════════════════════════════════════════════ LOOP 1: CORE ════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-loop1">
+
+<!-- ════════════════════════════════════════════ HERO ════════════════════════════════════════════ -->
+<section class="hero" id="hero">
+  <div class="hero-tag" data-i18n="hero.tag">NaN Gauntlet Loop · Agosto 2026</div>
+  <h1>Web <span>Slinger</span></h1>
+  <p class="subtitle" data-i18n-html="hero.subtitle.loop1">Juego de balanceo con telarañas en Three.js, construido con Gauntlet Loop: Opus orquestando, DeepSeek V4 Flash construyendo, GPT-5.5 criticando.</p>
+  <div class="hero-meta">
+    <span data-i18n-html="hero.meta.orchestrator"><strong>Opus 5</strong> orquestador</span>
+    <span data-i18n-html="hero.meta.builder"><strong>DeepSeek V4 Flash</strong> constructor</span>
+    <span><strong>GPT-5.5</strong> critic</span>
+  </div>
+  <div class="hero-badges">
+    <span class="badge ok">120 fps</span>
+    <span class="badge ok" data-i18n="badge.determinism">Determinismo PASS</span>
+    <span class="badge ok" data-i18n="badge.consoleclean">Console limpio</span>
+    <span class="badge info">Three.js + TypeScript</span>
+  </div>
+  <div class="scroll-hint">↓</div>
+</section>
+
+<!-- ════════════════════════════════════════════ PROMPT ══════════════════════════════════════════ -->
+<main>
+<section id="prompt" class="reveal">
+  <div class="section-label">01</div>
+  <h2 data-i18n="prompt.h2">El Prompt</h2>
+  <p data-i18n="prompt.intro">Prompt adaptado del Gauntlet Challenge, enfocado en un juego de Spider-Man en Three.js con ciclo de builder + critic agents.</p>
+
+  <div class="prompt-block" data-i18n-attr="data-label:promptblock.label" data-label="PROMPT INICIAL">
+    <div class="prompt-text">I want you to build <span class="hl">a Spider-Man web-swinging game</span> at the level of the most recent Spider-Man games. It should be utterly perfect, visually beautiful, with every single thing done at an <span class="hl">AAA quality</span>—from physics to feel to city density.
+
+<span class="prompt-annotation" data-i18n="prompt.annot1">El prompt pide calidad AAA pero con un scope acotado: web-swinging, no un juego completo.</span>
+
+Fan out sub-agents and have sub-agents tackle each one individually so that the game is perfect. You should loop on each item and have a <span class="hl">separate sub-agent check it visually</span> to ensure it looks triple A. That separate sub-agent should be a <span class="hl">really harsh critic</span>, and if it doesn't look triple A, it should keep going.
+
+<span class="prompt-annotation" data-i18n="prompt.annot2">El patrón Gauntlet: builder + critic separados. El critic es "really harsh" — no aprueba mediocridad.</span>
+
+Don't stop until each sub-agent is utterly wowed with the quality when compared with the <span class="hl">actual Spider-Man game</span>. It should literally compare them side by side and say which one looks better. Do this in <span class="hl">ThreeJS</span>. Loop until it's utterly perfect. Fan out sub-agents and <span class="hl">ultracode</span>.</div>
+
+    <span class="prompt-annotation" style="margin-top: 16px;" data-i18n="prompt.annot3">La clave: comparar contra material de referencia real (Spider-Man 2 PS5), no contra una opinión subjetiva.</span>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ ARQUITECTURA ══════════════════════════════════════════ -->
+<section id="arquitectura" class="reveal">
+  <div class="section-label">02</div>
+  <h2 data-i18n="arch.h2">Arquitectura del Loop</h2>
+  <p data-i18n-html="arch.intro">El Gauntlet Loop es un ciclo continuo: <strong>construir → criticar → corregir → evidencia</strong>. Tres modelos de IA trabajan en tandem: Opus orquesta, DeepSeek V4 Flash construye, GPT-5.5 critica.</p>
+
+  <div class="arch-diagram">
+    <div class="arch-flow">
+      <div class="arch-node">
+        <div class="icon icon-human">👤</div>
+        <div class="label" data-i18n="arch.node.human.label">Humano</div>
+        <div class="sub" data-i18n="arch.node.human.sub">Define visión</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="icon icon-prompt">📝</div>
+        <div class="label">Prompt</div>
+        <div class="sub" data-i18n="arch.node.prompt.sub">Especificación</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="icon icon-build">🔧</div>
+        <div class="label">DeepSeek V4 Flash</div>
+        <div class="sub" data-i18n="arch.node.builder.sub">Constructor</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="icon icon-critic">🔍</div>
+        <div class="label">GPT-5.5</div>
+        <div class="sub">Critic (harsh)</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="icon icon-evidence">📊</div>
+        <div class="label" data-i18n="arch.node.evidence.label">Evidencia</div>
+        <div class="sub" data-i18n="arch.node.evidence.sub">Capturas + métricas</div>
+      </div>
+      <div class="arch-arrow">↺</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top: 24px; margin-bottom: 12px;" data-i18n="arch.models.h3">Los 3 Modelos del Loop</h3>
+  <div class="agents-grid">
+    <div class="agent-card">
+      <div class="name">Claude Opus 5</div>
+      <div class="role" data-i18n="agent.role.orchestrator">Orquestador</div>
+      <div class="files" data-i18n-html="agent.opus.files">Coordina agentes<br>Toma decisiones arquitectónicas<br>Asigna tareas<br>Resuelve conflictos entre sistemas</div>
+    </div>
+    <div class="agent-card">
+      <div class="name">DeepSeek V4 Flash</div>
+      <div class="role" data-i18n="agent.role.builder">Constructor</div>
+      <div class="files" data-i18n-html="agent.deepseek.files">Implementa sistemas: ciudad, traversal, cámara, FX<br>Escribe código<br>Resuelve bugs<br>Itera según feedback del critic</div>
+    </div>
+    <div class="agent-card">
+      <div class="name">GPT-5.5</div>
+      <div class="role">Critic</div>
+      <div class="files" data-i18n-html="agent.gpt.files">Revisa contra material de referencia real<br>Identifica gaps concretos<br>Compara frame-a-frame<br>Rechaza mediocridad</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 16px;">
+    <h3 data-i18n="arch.stack.h3">Stack Tecnológico</h3>
+    <p style="font-size:13px; margin:0;" data-i18n-html="arch.stack.body">
+      <strong>Runtime:</strong> Three.js 0.169 · TypeScript · Vite<br>
+      <strong>Plataforma:</strong> Orca (multi-agent IDE)<br>
+      <strong>Evidencia:</strong> Playwright · Node.js capture pipeline<br>
+      <strong>Rendering:</strong> InstancedMesh · Custom shaders · Frustum culling
+    </p>
+  </div>
+
+  <div class="card" style="margin-top: 16px;">
+    <h3 data-i18n="arch.contract.h3">Contrato de Comunicación</h3>
+    <p data-i18n-html="arch.contract.body">Los agentes <strong>nunca importan entre sí</strong>. Se comunican únicamente a través de <code class="mono" style="color:var(--accent);">src/contracts/index.ts</code>, que define la interfaz <code class="mono">AnchorQuery</code>. Esto permite que la ciudad pueda ser reemplazada sin tocar el sistema de balanceo.</p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ FASES ══════════════════════════════════════════ -->
+<section id="fases" class="reveal">
+  <div class="section-label">03</div>
+  <h2 data-i18n="fases.h2">Fases de Construcción</h2>
+  <p data-i18n-html="fases.intro">La primera iteración del Gauntlet Loop. Cada fase fue construida por DeepSeek V4 Flash (constructor) y revisada por GPT-5.5 (critic), con Opus (orquestador) coordinando el flujo.</p>
+  <p style="font-size:12px; color:var(--dim); margin-top:4px;" data-i18n="fases.swipehint">← Desliza para ver todas las fases →</p>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="phase-tag" data-i18n="phase.tag.0">Fase 0 — Research</div>
+      <h3 data-i18n="phase.0.h3">Análisis de Referencia y Especificaciones</h3>
+      <div class="detail" data-i18n-html="phase.0.detail">
+        <strong>Constructor:</strong> DeepSeek V4 Flash · <strong>Critic:</strong> GPT-5.5 · <strong>Orquestador:</strong> Opus<br>
+        Análisis frame-by-frame de 12 secuencias de Spider-Man 2 PS5 (54 frames de referencia). Creación de specs cuantificadas: FEEL_SPEC.md, VISUAL_SPEC.md, CRITIC_RUBRIC.md.
+      </div>
+      <div class="files-list">reference-pack/ · STATE_MACHINE.md · SWING_ANALYSIS.md · CAMERA_ANALYSIS.md · GAME_FEEL.md · MEASUREMENTS.md</div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase-tag" data-i18n="phase.tag.1">Fase 1 — Core Foundation</div>
+      <h3 data-i18n="phase.1.h3">Boot, RAF Loop, Telemetría</h3>
+      <div class="detail" data-i18n-html="phase.1.detail">
+        <strong>Constructor:</strong> DeepSeek V4 Flash · <strong>Critic:</strong> GPT-5.5 · <strong>Orquestador:</strong> Opus<br>
+        Sistema de arranque, requestAnimationFrame loop, API congelada <code class="mono">window.__GAUNTLET__</code>, debug HUD, monitor de rendimiento.
+      </div>
+      <div class="files-list">src/core/* · src/contracts/* · index.html</div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase-tag" data-i18n="phase.tag.2">Fase 2 — City Generation</div>
+      <h3 data-i18n="phase.2.h3">Ciudad Procedural Manhattan</h3>
+      <div class="detail" data-i18n-html="phase.2.detail">
+        <strong>Constructor:</strong> DeepSeek V4 Flash · <strong>Critic:</strong> GPT-5.5 · <strong>Orquestador:</strong> Opus · <strong>Iteraciones:</strong> 2<br>
+        Grid de bloques InstancedMesh con streaming por chunks. SkyDome custom con ciclo día/noche. Ventanas emisivas nocturnas. Seed-determinista: misma semilla = ciudad byte-idéntica.
+      </div>
+      <div class="files-list">src/city/* · gen.ts · SkyDome shader · BlockRegistry</div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase-tag" data-i18n="phase.tag.3">Fase 3 — Traversal</div>
+      <h3 data-i18n="phase.3.h3">Física de Balanceo con Telaraña</h3>
+      <div class="detail" data-i18n-html="phase.3.detail">
+        <strong>Constructor:</strong> DeepSeek V4 Flash · <strong>Critic:</strong> GPT-5.5 · <strong>Orquestador:</strong> Opus · <strong>Iteraciones:</strong> 4<br>
+        Solver de péndulo en fixed-step. Mecánicas de attach/release de telaraña. Dash dirigido, dive, control aéreo. Máquina de estados: idle → perch → swing → release → dash → dive.
+      </div>
+      <div class="files-list">src/swing/* · src/player/* · PendulumSolver · StateMachine</div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase-tag" data-i18n="phase.tag.4">Fase 4 — Camera / FX / Input</div>
+      <h3 data-i18n="phase.4.h3">Capa de Game Feel</h3>
+      <div class="detail" data-i18n-html="phase.4.detail">
+        <strong>Constructor:</strong> DeepSeek V4 Flash · <strong>Critic:</strong> GPT-5.5 · <strong>Orquestador:</strong> Opus<br>
+        Cámara chase con springs de amortiguamiento crítico. Curva de FOV según velocidad. Speed streaks y wind wisps en screen-space. Renderizado de líneas de telaraña. Sistema de input bufferizado.
+      </div>
+      <div class="files-list">src/camera/* · src/fx/* · src/input/* · ChaseCamera · SpeedStreaks</div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase-tag" data-i18n="phase.tag.5">Fase 5 — Evidence Harness</div>
+      <h3 data-i18n="phase.5.h3">Pipeline de Evidencia Automatizado</h3>
+      <div class="detail" data-i18n-html="phase.5.detail">
+        <strong>Constructor:</strong> DeepSeek V4 Flash · <strong>Critic:</strong> GPT-5.5 · <strong>Orquestador:</strong> Opus<br>
+        Capturas Playwright: screenshots, secuencias de video, benchmarks de rendimiento. Verificación de determinismo (chequeo byte-idéntico). Gate de errores de consola. Generación de página de progreso.
+      </div>
+      <div class="files-list">tools/capture.mjs · tools/progress.mjs · tools/tapes/*</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ ITERACIÓN ══════════════════════════════════════════ -->
+<section id="iteracion" class="reveal">
+  <div class="section-label">04</div>
+  <h2 data-i18n="iter.h2">El Ciclo de Iteración</h2>
+  <p data-i18n-html="iter.intro">Cada sistema pasó por múltiples rondas de <strong>build → critique → fix</strong>. DeepSeek V4 Flash implementaba, GPT-5.5 comparaba contra el material de referencia y emitía un veredicto con evidencia, Opus coordinaba el flujo.</p>
+
+  <div class="iter-flow">
+    <span class="iter-step build" data-i18n="iterflow.build1">DeepSeek V4 Flash implementa</span>
+    <span class="iter-arrow">→</span>
+    <span class="iter-step critique" data-i18n="iterflow.review1">GPT-5.5 revisa</span>
+    <span class="iter-arrow">→</span>
+    <span class="iter-step critique" data-i18n="iterflow.fail1">FAIL + feedback</span>
+    <span class="iter-arrow">→</span>
+    <span class="iter-step fix" data-i18n="iterflow.fix1">DeepSeek V4 Flash corrige</span>
+    <span class="iter-arrow">→</span>
+    <span class="iter-step pass">PASS ✓</span>
+  </div>
+
+  <div class="card-grid" style="margin-top: 20px;">
+    <div class="card">
+      <h3 data-i18n="iter.card.city.h3">Ciudad Procedural</h3>
+      <div class="meta" data-i18n="iter.card.city.meta">2 iteraciones</div>
+      <p style="font-size:13px;" data-i18n-html="iter.card.city.body"><strong>ITER1:</strong> Overflow de capacidad en InstancedMesh, chunks sin optimizar. Critic found GPU buffer leak.<br><strong>ITER2:</strong> Chunk streaming corregido, budgets within limits. PASS.</p>
+    </div>
+    <div class="card">
+      <h3>Traversal / Swing</h3>
+      <div class="meta" data-i18n="iter.card.traversal.meta">4 iteraciones</div>
+      <p style="font-size:13px;" data-i18n-html="iter.card.traversal.body"><strong>ITER1:</strong> Péndulo inestable, release errático.<br><strong>ITER2:</strong> Fixed-step solver, mejora en attach.<br><strong>ITER4:</strong> Dash dirigido + dive funcionando. PASS.</p>
+    </div>
+    <div class="card">
+      <h3>Camera / FX</h3>
+      <div class="meta" data-i18n="iter.card.camera.meta">1 iteración</div>
+      <p style="font-size:13px;" data-i18n-html="iter.card.camera.body"><strong>ITER1:</strong> Cámara chase con springs críticos, FOV curve, speed streaks. Aprobado directamente contra referencia.</p>
+    </div>
+    <div class="card">
+      <h3 data-i18n="iter.card.integration.h3">Integración</h3>
+      <div class="meta">5 waves</div>
+      <p style="font-size:13px;" data-i18n-html="iter.card.integration.body">Waves de integración verificaron que todos los sistemas funcionan juntos. Cada wave = rebuild + full capture suite.</p>
+    </div>
+  </div>
+
+  <div class="iter-example">
+    <div class="tag" data-i18n="iterex.tag.city">EJEMPLO: CITY_ITER1 → CITY_ITER2</div>
+    <p style="font-size:13px; margin:0;">
+      <strong>Critic found:</strong> "Chunk streaming leaks GPU instance buffers without bound — capacity overflow at 2.8k blocks."<br>
+      <strong>Builder fix:</strong> Implemented chunk recycling, capped instance buffer allocation, added frustum-cull per chunk.<br>
+      <strong>Critic re-review:</strong> "All budgets pass with headroom. PASS." — Evidenced by capture run showing 73 draw calls, 581k triangles, 23MB heap.
+    </p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ MÉTRICAS ══════════════════════════════════════════ -->
+<section id="metricas" class="reveal">
+  <div class="section-label">05</div>
+  <h2 data-i18n="metrics.h2">Resultados y Métricas</h2>
+  <p data-i18n-html="metrics.intro">Datos de la última ejecución de evidencia (commit <code class="mono">afcad45</code>, seed <code class="mono">1337</code>).</p>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="value green">120</div>
+      <div class="label">FPS</div>
+    </div>
+    <div class="metric-card">
+      <div class="value green">8.33ms</div>
+      <div class="label">Frame avg</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">581k</div>
+      <div class="label" data-i18n="metric.label.triangles">Triángulos</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">73</div>
+      <div class="label">Draw calls</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">23MB</div>
+      <div class="label">JS Heap</div>
+    </div>
+    <div class="metric-card">
+      <div class="value green">42ms</div>
+      <div class="label">Load time</div>
+    </div>
+    <div class="metric-card">
+      <div class="value green">PASS</div>
+      <div class="label" data-i18n="metric.label.determinism">Determinismo</div>
+    </div>
+    <div class="metric-card">
+      <div class="value green">0</div>
+      <div class="label" data-i18n="metric.label.consoleerrors">Errores consola</div>
+    </div>
+    <div class="metric-card">
+      <div class="value blue">40+</div>
+      <div class="label" data-i18n="metric.label.capturesrun">Capturas ejecutadas</div>
+    </div>
+    <div class="metric-card">
+      <div class="value blue">74</div>
+      <div class="label">Commits</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">~12k</div>
+      <div class="label" data-i18n="metric.label.loc">Líneas de código</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">32</div>
+      <div class="label" data-i18n="metric.label.tsfiles">Archivos .ts</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 16px;">
+    <h3 data-i18n="metrics.determinism.h3">Verificación de Determinismo</h3>
+    <p style="font-size:13px; margin:0;" data-i18n-html="metrics.determinism.body">Misma seed (<code class="mono">1337</code>) → ciudad byte-idéntica. Hash de geometría: <code class="mono">13e694dc9b05…</code> vs <code class="mono">13e694dc9b05…</code>. 969 edificios idénticos. Superficies de prueba: 3 puntos, idénticos. dHash visual: 8 bits ≤ 12. Structural tris: 546k/546k vs 531k/531k.</p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ REFERENCIA ══════════════════════════════════════════ -->
+<section id="referencia" class="reveal">
+  <div class="section-label">06</div>
+  <h2 data-i18n="ref.h2">Material de Referencia</h2>
+  <p data-i18n="ref.intro">Análisis frame-by-frame de Spider-Man 2 PS5 como ground truth para el critic. 12 secuencias, 54 frames de referencia.</p>
+
+  <div class="gallery">
+    <figure>
+      <img src="../reference-pack/frames/sequence_01/001_perch.png" alt="Frame 01: Perch" loading="lazy">
+      <figcaption data-i18n="ref.fig.01">01 · Perch — posición inicial en borde</figcaption>
+    </figure>
+    <figure>
+      <img src="../reference-pack/frames/sequence_01/002_look_down.png" alt="Frame 02: Look down" loading="lazy">
+      <figcaption data-i18n="ref.fig.02">02 · Look down — evaluación del espacio</figcaption>
+    </figure>
+    <figure>
+      <img src="../reference-pack/frames/sequence_01/003_fall.png" alt="Frame 03: Fall" loading="lazy">
+      <figcaption data-i18n="ref.fig.03">03 · Caída — transición a airborne</figcaption>
+    </figure>
+    <figure>
+      <img src="../reference-pack/frames/sequence_01/004_airborne_flair.png" alt="Frame 04: Airborne" loading="lazy">
+      <figcaption data-i18n="ref.fig.04">04 · Airborne flair — pose en caída libre</figcaption>
+    </figure>
+    <figure>
+      <img src="../reference-pack/frames/sequence_01/005_web_attach.png" alt="Frame 05: Web attach" loading="lazy">
+      <figcaption data-i18n="ref.fig.05">05 · Web attach — conexión de telaraña</figcaption>
+    </figure>
+    <figure>
+      <img src="../reference-pack/frames/sequence_01/006_swing_inverted.png" alt="Frame 06: Swing" loading="lazy">
+      <figcaption data-i18n="ref.fig.06">06 · Swing invertido — punto más bajo del balanceo</figcaption>
+    </figure>
+  </div>
+
+  <div class="card" style="margin-top: 16px;">
+    <h3 data-i18n="ref.docs.h3">Documentos de Análisis</h3>
+    <p style="font-size:13px; margin:0;" data-i18n-html="ref.docs.body">
+      El reference-pack contiene 17 documentos de análisis: STATE_MACHINE.md, SWING_ANALYSIS.md, ANCHOR_ANALYSIS.md, CAMERA_ANALYSIS.md, GAME_FEEL.md, MEASUREMENTS.md, VISUAL_FEEDBACK.md, y más. Cada documento cuantifica aspectos específicos del gameplay de referencia para que el critic tenga datos objetivos, no opiniones.
+    </p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ CAPTURAS ══════════════════════════════════════════ -->
+<section id="capturas" class="reveal">
+  <div class="section-label">07</div>
+  <h2 data-i18n="cap.h2">Capturas del Juego</h2>
+  <p data-i18n="cap.intro">Capturas automatizadas por el evidence harness. Sweep de hora del día mostrando la ciudad procedural con iluminación dinámica.</p>
+
+  <div class="gallery">
+    <figure>
+      <img src="../captures/latest/shots/hero.png" alt="Hero shot" loading="lazy">
+      <figcaption data-i18n="cap.fig.hero">Hero — vista principal del juego</figcaption>
+    </figure>
+    <figure>
+      <img src="../captures/latest/shots/tod_050_noon.png" alt="Noon" loading="lazy">
+      <figcaption data-i18n="cap.fig.noon">Mediodía — iluminación máxima</figcaption>
+    </figure>
+    <figure>
+      <img src="../captures/latest/shots/tod_075_sunset.png" alt="Sunset" loading="lazy">
+      <figcaption data-i18n="cap.fig.sunset">Atardecer — tonos cálidos</figcaption>
+    </figure>
+    <figure>
+      <img src="../captures/latest/shots/tod_090_evening.png" alt="Evening" loading="lazy">
+      <figcaption data-i18n="cap.fig.evening">Noche — ventanas emisivas activas</figcaption>
+    </figure>
+    <figure>
+      <img src="../captures/latest/shots/tod_000_midnight.png" alt="Midnight" loading="lazy">
+      <figcaption data-i18n="cap.fig.midnight">Medianoche — ambiente oscuro</figcaption>
+    </figure>
+    <figure>
+      <img src="../captures/latest/shots/tod_025_sunrise.png" alt="Sunrise" loading="lazy">
+      <figcaption data-i18n="cap.fig.sunrise">Amanecer — transición suave</figcaption>
+    </figure>
+    <figure>
+      <img src="../captures/latest/shots/tod_040_morning.png" alt="Morning" loading="lazy">
+      <figcaption data-i18n="cap.fig.morning">Mañana — luz lateral</figcaption>
+    </figure>
+    <figure>
+      <img src="../captures/latest/shots/tod_070_late-afternoon.png" alt="Late afternoon" loading="lazy">
+      <figcaption data-i18n="cap.fig.lateafternoon">Tarde tardía — sombras largas</figcaption>
+    </figure>
+  </div>
+</section>
+
+</main>
+</div><!-- /tab-panel loop1 -->
+
+<!-- ════════════════════════════════════════════ LOOP 2: VISUAL POLISH ════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-loop2">
+
+<!-- ════════════════════════════════════════════ HERO 2 ════════════════════════════════════════════ -->
+<section class="hero" id="hero2">
+  <div class="hero-tag" data-i18n="hero.tag.loop2">Loop 2 — Visual Polish · Agosto 2026</div>
+  <h1>Loop <span>2</span></h1>
+  <p class="subtitle" data-i18n-html="hero.subtitle.loop2">De prototipos a producto: modelado de edificios, iluminación fotográfica, animaciones articuladas y efectos visuales — todo driven por el mismo ciclo builder + critic.</p>
+  <div class="hero-meta">
+    <span data-i18n-html="hero2.meta.subsystems"><strong>4 subsistemas</strong> en paralelo</span>
+    <span data-i18n-html="hero2.meta.commits"><strong>~20 commits</strong> de visual polish</span>
+    <span data-i18n-html="hero2.meta.docs"><strong>10+ docs</strong> de crítica independiente</span>
+  </div>
+  <div class="hero-badges">
+    <span class="badge ok">Fog continuity PASS</span>
+    <span class="badge ok">Flip leak FIX</span>
+    <span class="badge ok">Shadow map LIVE</span>
+    <span class="badge ok">Buffer leak FIX</span>
+    <span class="badge info">15 building variants</span>
+  </div>
+  <div class="scroll-hint">↓</div>
+</section>
+
+<!-- ════════════════════════════════════════════ FASES 2 ════════════════════════════════════════════ -->
+<main>
+<section id="fases2" class="reveal">
+  <div class="section-label">01</div>
+  <h2 data-i18n="fases.h2">Fases de Construcción</h2>
+  <p data-i18n-html="fases2.intro">El segundo loop transformó la ciudad de cajas placeholder a un Manhattan atmosférico con edificios authored, texturas reales, iluminación fotográfica y un héroe articulado. Cada subsistema pasó por el mismo ciclo <strong>build → critique → fix</strong>.</p>
+
+  <div class="subsystem-grid" style="margin-top: 20px;">
+    <div class="subsystem-card">
+      <div class="sys-tag" style="color: var(--accent);" data-i18n="sys.tag.modeling">Modelado — City Builder</div>
+      <h3 data-i18n="sys.modeling.h3">Edificios Authored + Facades</h3>
+      <div class="detail" data-i18n-html="sys.modeling.detail">
+        <strong>Pipeline GLB:</strong> 40MB → 1.4MB, 16 variantes de Blender<br>
+        <strong>Registry:</strong> 15 variantes completas, 4 arquetipos (residential, office, low-rise, civic)<br>
+        <strong>Facade system:</strong> Bandas proporcionales al piso, 4 caras, inset 0.08m<br>
+        <strong>Ground:</strong> Asfalto + pavimento texturizado con UV world-space
+      </div>
+      <div class="files-list">BuildingModels.ts · BuildingRegistry.ts · gen.ts · GroundMaterials.ts<br>ASSET_ANALYSIS.md · SYSTEM.md</div>
+    </div>
+
+    <div class="subsystem-card">
+      <div class="sys-tag" style="color: var(--gold);" data-i18n="sys.tag.lighting">Iluminación — DayNight + SkyDome</div>
+      <h3 data-i18n="sys.lighting.h3">Ciclo Día/Noche Fotográfico</h3>
+      <div class="detail" data-i18n-html="sys.lighting.detail">
+        <strong>SkyDome:</strong> 3 placas fotográficas (day, night, horizon strip) + gradiente procedural<br>
+        <strong>Fog:</strong> Continuo smoothstep, camera-driven, sin discontinuidad<br>
+        <strong>Shadows:</strong> 2048x2048 PCF, 640m ortho, sun-following<br>
+        <strong>Windows:</strong> Emissive fade-in at dusk, warm/cool per-band
+      </div>
+      <div class="files-list">DayNightSystem.ts · SkyDome.ts · SHADOWS.md<br>sky.webp · sky-night.webp · sky-horizon.webp</div>
+    </div>
+
+    <div class="subsystem-card">
+      <div class="sys-tag" style="color: var(--ok);" data-i18n="sys.tag.animation">Animación — Pose Library + Motion</div>
+      <h3 data-i18n="sys.animation.h3">Héroe Articulado con 21 Variantes</h3>
+      <div class="detail" data-i18n-html="sys.animation.detail">
+        <strong>Library:</strong> 912 poses hand-authored, 7 estados × 2-3 variantes<br>
+        <strong>Motion layer:</strong> Variation → Drive → Flips → Secondary<br>
+        <strong>Skin:</strong> GLB Mixamo hybrid (4 clips + pose library para traversal)<br>
+        <strong>Fix:</strong> Flip leak → state-exact resolution, 0° en contacto
+      </div>
+      <div class="files-list">poses.ts · motion.ts · CharacterModel.ts · PlayerFigure.ts<br>animation/compare/*.jpg · clips/*.mp4</div>
+    </div>
+
+    <div class="subsystem-card">
+      <div class="sys-tag" style="color: var(--accent2);" data-i18n="sys.tag.fx">Efectos — FxSystem + Speed</div>
+      <h3>Web Lines, Glints, Speed Streaks</h3>
+      <div class="detail" data-i18n-html="sys.fx.detail">
+        <strong>Web:</strong> Línea tenue (0.04m), shoot-out + snap transients<br>
+        <strong>Glints:</strong> Flash blanco en attach/release<br>
+        <strong>Speed:</strong> Streaks alineados al vector de velocidad, tinted fog<br>
+        <strong>Audio:</strong> Wind/thwip/whoosh synthesized
+      </div>
+      <div class="files-list">FxSystem.ts · SpeedOverlay.ts · AudioSystem.ts</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ TIMELINE 2 ════════════════════════════════════════════ -->
+<section class="reveal" style="margin-top: 48px;">
+  <div class="section-label">02</div>
+  <h2 data-i18n="timeline.h2">Línea Temporal</h2>
+  <p data-i18n="timeline.intro">Secuencia cronológica de commits del Loop 2, agrupados por subsistema.</p>
+  <p style="font-size:12px; color:var(--dim); margin-top:4px;" data-i18n="timeline.swipehint">← Desliza para ver todos los commits →</p>
+
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="phase-tag" data-i18n="t2.tag.modeling.assets">Modelado — Assets</div>
+      <h3>GLB Pipeline + Registry</h3>
+      <div class="detail" data-i18n-html="t2.detail.modelingassets">
+        <strong>Commits:</strong> <code class="mono">0da29f7</code> · <code class="mono">9ad5fa1</code> · <code class="mono">eba38c1</code><br>
+        Export Blender → GLB comprimido (meshopt). 16 variantes, re-origen a y=0, MeshLambertMaterial para compatibilidad DayNight. Registry con arquetipos y constraints de fit.
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase-tag" data-i18n="t2.tag.modeling.fix">Modelado — Fix</div>
+      <h3>Fit + Buried Buildings</h3>
+      <div class="detail" data-i18n-html="t2.detail.modelingfix">
+        <strong>Commit:</strong> <code class="mono">3247711</code><br>
+        Modelos enterrados y estirados. Fix: fit a bounding box, slenderness ratio matching.
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase-tag" data-i18n="t2.tag.lighting.sky">Iluminación — Sky</div>
+      <h3 data-i18n="t2.h3.skydome">SkyDome Fotográfico</h3>
+      <div class="detail" data-i18n-html="t2.detail.sky">
+        <strong>Commits:</strong> <code class="mono">afcad45</code> · <code class="mono">2b1d49d</code> · <code class="mono">68fc169</code> · <code class="mono">91aeefd</code><br>
+        Placas estereográficas day/night + horizon strip azimuthal. Normalización de luminancia. Cobertura radial sin rims.
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase-tag" data-i18n="t2.tag.lighting.fog">Iluminación — Fog</div>
+      <h3 data-i18n="t2.h3.fog">Fog Continuo Camera-Driven</h3>
+      <div class="detail" data-i18n-html="t2.detail.fog">
+        <strong>Commit:</strong> <code class="mono">35cf5c6</code><br>
+        Smoothstep continuo altitud (8-150m), night scale 0.6/0.95. La critic lo llamó "the single biggest quality gain in the project's history".
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase-tag" data-i18n="t2.tag.anim.library">Animación — Library</div>
+      <h3>Pose Library + Motion Layer</h3>
+      <div class="detail" data-i18n-html="t2.detail.animlibrary">
+        <strong>Commits:</strong> <code class="mono">1be4d90</code> · <code class="mono">11a80ea</code><br>
+        912 poses, 7 estados. SCISSOR/CANNONBALL/LAYOUT re-authored. motionSwingDriveAuthority 0.65→0.3. State-exact flip resolution.
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase-tag" data-i18n="t2.tag.anim.skin">Animación — Skin</div>
+      <h3>Character GLB + Hybrid Rig</h3>
+      <div class="detail" data-i18n-html="t2.detail.animskin">
+        <strong>Commits:</strong> <code class="mono">6a80bdb</code> · <code class="mono">9a39ff9</code> · <code class="mono">d9138cd</code><br>
+        Mixamo GLB con 4 clips. Pose library drive para traversal states. Double-sided materials fix. Dash web throw.
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase-tag">Ground — Textures</div>
+      <h3 data-i18n="t2.h3.ground">Asfalto + Pavimento Texturizado</h3>
+      <div class="detail" data-i18n-html="t2.detail.ground">
+        <strong>Commits:</strong> <code class="mono">c527970</code> · <code class="mono">e85d2d4</code> · <code class="mono">487d3f8</code><br>
+        UV world-space override (4m/tile). Anisotropic filtering. Triple-multiply bug fix. Disposal pipeline.
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase-tag">Shadows</div>
+      <h3>Dynamic Sun Shadows</h3>
+      <div class="detail" data-i18n-html="t2.detail.shadows">
+        <strong>Commits:</strong> <code class="mono">fcbd9ce</code> · <code class="mono">a1993b2</code><br>
+        PCF 2048², 640m ortho. Shadow direction = sun elevation. Night disables pass. +39 draws, +0.1ms p95.
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="phase-tag">Bugfix — Critical</div>
+      <h3>GPU Buffer Leak Fix</h3>
+      <div class="detail" data-i18n-html="t2.detail.bufferleak">
+        <strong>Commit:</strong> <code class="mono">950a19e</code><br>
+        removeChunk() no disposeaba InstancedMesh. Rate: 5.6 buffers/s, 1.7 MB/min. Fix: disposeChunkMesh() completo.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ ITERACIÓN 2 ════════════════════════════════════════════ -->
+<section id="iteracion2" class="reveal" style="margin-top: 48px;">
+  <div class="section-label">03</div>
+  <h2 data-i18n="iter.h2">Ciclo de Iteración</h2>
+  <p data-i18n-html="iter2.intro">Cada subsistema fue construido por DeepSeek V4 Flash, revisado por GPT-5.5 como critic independiente, y coordinado por Opus. Los veredictos son binarios: PASS o FAIL con evidencia cuantificada.</p>
+
+  <div class="iter-flow">
+    <span class="iter-step build" data-i18n="iterflow.build2">DeepSeek implementa</span>
+    <span class="iter-arrow">→</span>
+    <span class="iter-step critique" data-i18n="iterflow.review2">GPT-5.5 critica</span>
+    <span class="iter-arrow">→</span>
+    <span class="iter-step critique" data-i18n="iterflow.fail2">FAIL + gaps</span>
+    <span class="iter-arrow">→</span>
+    <span class="iter-step fix" data-i18n="iterflow.fix2">DeepSeek corrige</span>
+    <span class="iter-arrow">→</span>
+    <span class="iter-step pass">PASS ✓</span>
+  </div>
+
+  <!-- City Modeling -->
+  <h3 style="margin-top: 28px; margin-bottom: 12px;" data-i18n="iter2.cityh3">City Modeling — Veredictos</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h3>Buildings Visual</h3>
+      <div class="meta">
+        <span class="iter-badge fail">4 PASS / 10 FAIL / 1 BLOCKED</span>
+      </div>
+      <p style="font-size:13px;" data-i18n-html="iter2.card.buildingsvisual">
+        <strong>Gap principal:</strong> Modelos authored visualmente inertes a distancias de gameplay (0.2-6.8% de pixels). Solo 53/486 buildings (10.9%) tenían modelo GLB. Techo de registry a 85m excluía skyline.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Buildings Performance</h3>
+      <div class="meta">
+        <span class="iter-badge pass">All budgets PASS</span>
+      </div>
+      <p style="font-size:13px;" data-i18n-html="iter2.card.buildingsperf">
+        <strong>Draw calls:</strong> 109/220 (50% headroom) · <strong>Tris:</strong> 584k/900k (35%) · <strong>Heap:</strong> 39.5MB/512MB · <strong>Frame p95:</strong> 10.2ms/16.7ms<br>
+        <strong>Bug found:</strong> GPU buffer leak en chunk streaming (+1.7 MB/min).
+      </p>
+    </div>
+    <div class="card">
+      <h3>City Atmosphere Iter2</h3>
+      <div class="meta">
+        <span class="iter-badge pass">21 PASS / 2 PARTIAL</span>
+      </div>
+      <p style="font-size:13px;" data-i18n-html="iter2.card.cityatmo">
+        <strong>"The single biggest quality gain in the project's history."</strong> Fog continuity resuelto. Skyline muestra múltiples rangos de torres hasta el horizonte. Facades ahora leen como arquitectura.
+      </p>
+    </div>
+    <div class="card">
+      <h3>City Life Iter2</h3>
+      <div class="meta">
+        <span class="iter-badge pass">8 PASS / 0 FAIL / 1 BLOCKED</span>
+      </div>
+      <p style="font-size:13px;">
+        Buffer leak plateaued at 785-809 across all 12 legs. Heap metric honest. Hooks work. LOD smooth. Remaining: visual LOD blocking (headless WebGL limitation).
+      </p>
+    </div>
+  </div>
+
+  <!-- Animation -->
+  <h3 style="margin-top: 28px; margin-bottom: 12px;" data-i18n="iter2.animh3">Animation — Veredictos</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h3>Animation Iter1</h3>
+      <div class="meta">
+        <span class="iter-badge fail">2 PASS / 5 FAIL / 2 BLOCKED</span>
+      </div>
+      <p style="font-size:13px;" data-i18n-html="iter2.card.anim1">
+        <strong>P0:</strong> Flip leak into WALL_RUN (36.9°, 226.7°, 334.8° pitch measured).<br>
+        <strong>P1:</strong> Swing variants unreadable at gameplay scale. Variant 0 siempre seleccionada.<br>
+        <strong>P2:</strong> No idle pose, no secondary motion.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Animation Iter2</h3>
+      <div class="meta">
+        <span class="iter-badge pass">6 PASS / 0 FAIL / 3 BLOCKED</span>
+      </div>
+      <p style="font-size:13px;" data-i18n-html="iter2.card.anim2">
+        <strong>Flip:</strong> State-exact resolution → 0° en frame de contacto (PASS).<br>
+        <strong>Silhouettes:</strong> SCISSOR/CANNONBALL/LAYOUT distinct at 40-80px (PASS).<br>
+        <strong>Idle:</strong> Weight-shift + breathing layer added (PASS).<br>
+        <strong>Blocked:</strong> Traversal non-determinism propaga a visit numbering.
+      </p>
+    </div>
+  </div>
+
+  <div class="iter-example" style="margin-top: 16px;">
+    <div class="tag" data-i18n="iterex.tag.flip">EJEMPLO: ANIM_ITER1 → ANIM_ITER2 — FLIP FIX</div>
+    <p style="font-size:13px; margin:0;">
+      <strong>Critic found:</strong> "Hero emits 214.7° of flip pitch entering WALL_RUN. The old resolve mechanism accelerates a cut-short flip over 0.18s, leaking intermediate pitch into contact states."<br>
+      <strong>Builder fix:</strong> State-exact resolution — first non-airborne frame IS the whole turn, pitch/roll zero from that frame. Three independent gates: FlipController zeroing, isSurfaceContactState at rig application, MotionSample zeroing.<br>
+      <strong>Critic re-review:</strong> "Flip pitch on WALL_RUN contact frame: 0.0°. PASS."
+    </p>
+  </div>
+
+  <div class="iter-example" style="margin-top: 12px;">
+    <div class="tag" data-i18n="iterex.tag.fog">EJEMPLO: CITY_ATMO_ITER2 — FOG CONTINUITY</div>
+    <p style="font-size:13px; margin:0;">
+      <strong>Critic found:</strong> "Fog discontinuity at y=20/y=80 produced a 'featureless pale field' above and 'brown-mauve void' below. Skyline at 235m showed zero layered depth."<br>
+      <strong>Builder fix:</strong> Camera-driven fog via onBeforeRender. Continuous smoothstep(alt, 8, 150), eased altitude (0.35s tau), rate-limited output. Night fog scales: near 0.6, far 0.95.<br>
+      <strong>Critic re-review:</strong> "Skyline shows multiple ranks of towers extending to the horizon with layered depth. The single biggest quality gain in the project's history. 21 PASS, 2 PARTIAL."
+    </p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ MÉTRICAS 2 ════════════════════════════════════════════ -->
+<section id="metricas2" class="reveal" style="margin-top: 48px;">
+  <div class="section-label">04</div>
+  <h2 data-i18n="metrics2.h2">Presupuestos y Métricas</h2>
+  <p data-i18n="metrics2.intro">Loop 2 mantuvo todos los budgets del Loop 1 mientras agregaba complejidad visual significativa. Headroom amplio en todas las métricas.</p>
+
+  <h3 style="margin-top: 20px; margin-bottom: 12px;">Performance Budgets</h3>
+  <table class="budget-table">
+    <tr>
+      <th data-i18n="th.metric">Métrica</th>
+      <th>Budget</th>
+      <th>Loop 1 Worst</th>
+      <th>Loop 2 Worst</th>
+      <th>Headroom</th>
+    </tr>
+    <tr>
+      <td>Draw calls</td>
+      <td class="num">≤ 220</td>
+      <td class="num">73</td>
+      <td class="num">109</td>
+      <td class="num pass">50% <span class="headroom">(+39 shadows)</span></td>
+    </tr>
+    <tr>
+      <td data-i18n="metric.label.triangles">Triángulos</td>
+      <td class="num">≤ 900,000</td>
+      <td class="num">581k</td>
+      <td class="num">584k</td>
+      <td class="num pass">35%</td>
+    </tr>
+    <tr>
+      <td>JS Heap</td>
+      <td class="num">≤ 512 MB</td>
+      <td class="num">23 MB</td>
+      <td class="num">39.5 MB</td>
+      <td class="num pass">92%</td>
+    </tr>
+    <tr>
+      <td>Frame p95</td>
+      <td class="num">≤ 16.7 ms</td>
+      <td class="num">9.3 ms</td>
+      <td class="num">10.2 ms</td>
+      <td class="num pass">1.6x</td>
+    </tr>
+    <tr>
+      <td>Load time</td>
+      <td class="num">≤ 3000 ms</td>
+      <td class="num">42 ms</td>
+      <td class="num">190 ms</td>
+      <td class="num pass" data-i18n="loadtime.headroom">6% de budget</td>
+    </tr>
+  </table>
+
+  <h3 style="margin-top: 28px; margin-bottom: 12px;" data-i18n="metrics2.cityh3">Ciudad — Métricas Post-Loop 2</h3>
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="value">486</div>
+      <div class="label" data-i18n="metric.buildings.spawn">Edificios (spawn)</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">563</div>
+      <div class="label" data-i18n="metric.buildings.posttraversal">Edificios (post-traversal)</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">245m</div>
+      <div class="label" data-i18n="metric.maxheight">Altura máxima</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">15</div>
+      <div class="label" data-i18n="metric.glbvariants">Variantes GLB</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">4</div>
+      <div class="label" data-i18n="metric.archetypes">Arquetipos</div>
+    </div>
+    <div class="metric-card">
+      <div class="value green">1.0ms</div>
+      <div class="label" data-i18n="metric.generation">Generación (486 bldgs)</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">0.31m</div>
+      <div class="label">Shadow texel size</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">2048²</div>
+      <div class="label">Shadow map</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top: 28px; margin-bottom: 12px;" data-i18n="metrics2.animh3">Animación — Métricas</h3>
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="value">912</div>
+      <div class="label">Poses hand-authored</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">7</div>
+      <div class="label" data-i18n="metric.states">Estados</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">21</div>
+      <div class="label" data-i18n="metric.totalvariants">Variantes totales</div>
+    </div>
+    <div class="metric-card">
+      <div class="value green">0.0°</div>
+      <div class="label" data-i18n="metric.flipcontact">Flip en contacto</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">130k-374k</div>
+      <div class="label" data-i18n="metric.trisrange">Tris (rango)</div>
+    </div>
+    <div class="metric-card">
+      <div class="value green">9.1ms</div>
+      <div class="label">Frame p95</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top: 28px; margin-bottom: 12px;" data-i18n="metrics2.summaryh3">Resumen de Críticas — Loop 2</h3>
+  <table class="budget-table">
+    <tr>
+      <th>Subsystem</th>
+      <th>Iteration</th>
+      <th>Verdict</th>
+      <th>Key Change</th>
+    </tr>
+    <tr>
+      <td>City Iter2</td>
+      <td class="num">2</td>
+      <td class="pass">5 PASS / 2 FAIL</td>
+      <td>Instance overflow, proportions, TOD ramps</td>
+    </tr>
+    <tr>
+      <td>Buildings Visual</td>
+      <td class="num">1</td>
+      <td style="color:var(--fail);">4 PASS / 10 FAIL</td>
+      <td>Fog deletes city, facades blank, models inert</td>
+    </tr>
+    <tr>
+      <td>Buildings Perf</td>
+      <td class="num">1</td>
+      <td class="pass">All PASS + 1 leak fix</td>
+      <td>GPU buffer leak found and fixed</td>
+    </tr>
+    <tr>
+      <td>City Atmosphere</td>
+      <td class="num">2</td>
+      <td class="pass">21 PASS / 2 PARTIAL</td>
+      <td>Fog continuity, facades, tower palette</td>
+    </tr>
+    <tr>
+      <td>City Life</td>
+      <td class="num">2</td>
+      <td class="pass">8 PASS / 0 FAIL</td>
+      <td>Buffer leak plateaued, heap honest</td>
+    </tr>
+    <tr>
+      <td>Animation Iter1</td>
+      <td class="num">1</td>
+      <td style="color:var(--fail);">2 PASS / 5 FAIL</td>
+      <td>Flip leak, unreadable variants</td>
+    </tr>
+    <tr>
+      <td>Animation Iter2</td>
+      <td class="num">2</td>
+      <td class="pass">6 PASS / 0 FAIL</td>
+      <td>Flip fix, silhouettes, idle alive</td>
+    </tr>
+  </table>
+</section>
+
+<!-- ════════════════════════════════════════════ EVIDENCIA 2 ════════════════════════════════════════════ -->
+<section id="evidencia2" class="reveal" style="margin-top: 48px;">
+  <div class="section-label">05</div>
+  <h2 data-i18n="evid2.h2">Evidencia Visual</h2>
+  <p data-i18n="evid2.intro">Comparaciones frame-a-frame de animaciones y capturas del estado actual del juego post-Loop 2.</p>
+
+  <h3 style="margin-top: 20px; margin-bottom: 12px;">Animation State Comparisons</h3>
+  <p style="font-size: 13px;" data-i18n-html="evid2.statecomp.intro">Cada estado del héroe comparado lado a lado: referencia vs implementación. El critic verifica silueta, proporción y legibilidad a escala de gameplay (40-80px).</p>
+
+  <div class="compare-grid">
+    <figure>
+      <img src="../docs/animation/compare/SWING.jpg" alt="SWING state comparison" loading="lazy">
+      <figcaption data-i18n="fig.swingvariants">SWING — 3 variantes: SCISSOR / CANNONBALL / LAYOUT</figcaption>
+    </figure>
+    <figure>
+      <img src="../docs/animation/compare/AIRBORNE.jpg" alt="AIRBORNE state comparison" loading="lazy">
+      <figcaption>AIRBORNE — spread / tuck / wing glide</figcaption>
+    </figure>
+    <figure>
+      <img src="../docs/animation/compare/FALLING.jpg" alt="FALLING state comparison" loading="lazy">
+      <figcaption>FALLING — arrow / skydive arch / tip-off</figcaption>
+    </figure>
+    <figure>
+      <img src="../docs/animation/compare/DASH.jpg" alt="DASH state comparison" loading="lazy">
+      <figcaption>DASH — throw / streamed</figcaption>
+    </figure>
+    <figure>
+      <img src="../docs/animation/compare/WEB_ATTACH.jpg" alt="WEB_ATTACH state comparison" loading="lazy">
+      <figcaption>WEB_ATTACH — base / high lead / forward lead</figcaption>
+    </figure>
+    <figure>
+      <img src="../docs/animation/compare/WALL_RUN.jpg" alt="WALL_RUN state comparison" loading="lazy">
+      <figcaption>WALL_RUN — post flip-fix, 0° at contact</figcaption>
+    </figure>
+    <figure>
+      <img src="../docs/animation/compare/PERCH.jpg" alt="PERCH state comparison" loading="lazy">
+      <figcaption>PERCH — crouch / lookout</figcaption>
+    </figure>
+    <figure>
+      <img src="../docs/animation/compare/RELEASE.jpg" alt="RELEASE state comparison" loading="lazy">
+      <figcaption>RELEASE — flung wide / swing residual</figcaption>
+    </figure>
+  </div>
+
+  <h3 style="margin-top: 28px; margin-bottom: 12px;">Swing Variant Sheet</h3>
+  <div class="gallery" style="grid-template-columns: 1fr;">
+    <figure>
+      <img src="../docs/animation/variants-SWING.png" alt="Swing variant comparison" loading="lazy" style="max-height: 400px; object-fit: contain; background: var(--bg2);">
+      <figcaption data-i18n="fig.swingsheet">Comparación de las 3 variantes de SWING: SCISSOR (diagonal largo con V ancho), CANNONBALL (pelota compacta), LAYOUT (cruz invertida con brazos extendidos)</figcaption>
+    </figure>
+  </div>
+
+  <h3 style="margin-top: 28px; margin-bottom: 12px;" data-i18n="evid2.fliph3">Flip Resolution — Telemetría</h3>
+  <div class="card">
+    <h3>State-Exact Flip Fix (P0)</h3>
+    <p style="font-size:13px;" data-i18n-html="evid2.flipfix.body">
+      <strong>Antes (ITER1):</strong> Hero emitía 214.7° de flip pitch al entrar a WALL_RUN. El mecanismo anterior aceleraba un flip acortado sobre 0.18s, filtrando pitch intermedio a estados de contacto.<br><br>
+      <strong>Fix:</strong> Resolución state-exact — el primer frame no-airborne ES el giro completo. Pitch/roll = 0° desde ese frame. Tres puertas independientes: FlipController zeroing, isSurfaceContactState en rig application, MotionSample zeroing.<br><br>
+      <strong>Después (ITER2):</strong> Flip pitch en frame de contacto de WALL_RUN: <span style="color: var(--ok); font-weight: 700;">0.0°</span>
+    </p>
+  </div>
+
+  <h3 style="margin-top: 28px; margin-bottom: 12px;">Fog Before / After</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h3 data-i18n="evid2.fog.before.h3">Antes — Fog Discontinuo</h3>
+      <p style="font-size:13px;" data-i18n-html="evid2.fog.before.body">
+        Discontinuidad en y=20/y=80. Campo pálido sin features arriba. Void marrón-mauve abajo. Skyline a 235m sin profundidad layered. Cada camera altitude creaba un "cut" visible.
+      </p>
+    </div>
+    <div class="card">
+      <h3 data-i18n="evid2.fog.after.h3">Después — Fog Continuo</h3>
+      <p style="font-size:13px;" data-i18n-html="evid2.fog.after.body">
+        Smoothstep continuo altitud (8-150m). Skyline muestra múltiples rangos de torres hasta el horizonte con profundidad layered. "The single biggest quality gain in the project's history." — GPT-5.5 Critic
+      </p>
+    </div>
+  </div>
+
+  <h3 style="margin-top: 28px; margin-bottom: 12px;">Ground Textures</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h3 data-i18n="evid2.asphalt.h3">Asfalto (Roads)</h3>
+      <p style="font-size:13px;" data-i18n-html="evid2.asphalt.body">
+        UV world-space override via onBeforeCompile. Un tile = 4m independiente del instance scale. Anisotropic filtering. Material color 0xffffff para que la textura SEA el albedo.
+      </p>
+    </div>
+    <div class="card">
+      <h3 data-i18n="evid2.pavement.h3">Pavimento (Sidewalks)</h3>
+      <p style="font-size:13px;" data-i18n-html="evid2.pavement.body">
+        Textura procedural con disposal pipeline. Triple-multiply bug fix: el color del material no debe multiplicar la textura. Disposal en cierre de chunks.
+      </p>
+    </div>
+  </div>
+</section>
+
+</main>
+</div><!-- /tab-panel loop2 -->
+
+<!-- ════════════════════════════════════════════════ DEFINITIVO: POST-LOOP 2 ════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-definitive">
+
+<!-- ════════════════════════════════════════════════ HERO DEFINITIVO ════════════════════════════════════════════════ -->
+<section class="hero" id="hero-definitive">
+  <div class="hero-tag" data-i18n="hero.tag.def">NaN Gauntlet Loop · Definitivo · post-Loop 2</div>
+  <h1 data-i18n-html="hero.def.h1">Definitivo <span>—</span></h1>
+  <p class="subtitle" data-i18n-html="hero.def.subtitle">Todo el trabajo que el autor hizo <strong>fuera de los agentes</strong>: modo arcade con combo scoring, frases generadas por MiniMax, cielo fotográfico, configuración y pulido de cierre.</p>
+  <div class="hero-meta">
+    <span data-i18n-html="hero.def.meta1"><strong>Arcade</strong> + combo Tony Hawk</span>
+    <span data-i18n-html="hero.def.meta2"><strong>MiniMax</strong> voces con subtítulos</span>
+    <span data-i18n-html="hero.def.meta3"><strong>3 placas</strong> de cielo fotográfico</span>
+  </div>
+  <div class="hero-badges">
+    <span class="badge ok">Arcade LIVE</span>
+    <span class="badge info" data-i18n="badge.5voices">5 voces IA</span>
+    <span class="badge ok" data-i18n="badge.skydome3">SkyDome 3 placas</span>
+    <span class="badge info">i18n EN/ES</span>
+  </div>
+  <div class="scroll-hint">↓</div>
+</section>
+
+<main>
+<!-- ════════════════════════════════════════════════ MODE ARCADES ════════════════════════════════════════════════ -->
+<section id="arcade" class="reveal">
+  <div class="section-label">01</div>
+  <h2 data-i18n="arcade.h2">Modo Arcade</h2>
+  <p data-i18n-html="arcade.intro">Más allá de los loops de agentes, el autor añadió un <strong>modo arcade</strong> con la selección inicial de <em>libre vs arcade</em> que habilita el sistema de puntos. Las <strong>volteretas</strong> (<em>flips</em>) se leen del estado de flip del animador y se pagan al completarlas; los <em>chain links</em> sin tocar el suelo suman <strong>+1 al multiplicador</strong>. Una <strong>HUD de puntuación</strong> y un audio <em>riser</em> acompañan el scoring estilo <strong>Tony Hawk</strong>.</p>
+  <p style="font-size:12px; color:var(--dim); margin-top:4px;"><span data-i18n="label.commits">Commits:</span> <code class="mono">a2b0ff1</code> · <code class="mono">8478a6e</code> · <code class="mono">d694b86</code> · <code class="mono">fc3a566</code></p>
+
+  <figure style="margin:0;">
+    <img class="arcade-shot" src="../docs/ui/mode-screen.png" alt="Pantalla de selección de modo — Libre vs Arcade" loading="lazy" data-i18n-attr="alt:arcade.modeimg.alt">
+    <figcaption style="padding:8px 12px; font-size:11px; color:var(--dim);" data-i18n="arcade.modeimg.caption">Pantalla de selección de modo — Libre (sin sistema de puntos) vs Arcade (puntuación activa).</figcaption>
+  </figure>
+
+  <div class="card-grid" style="margin-top:20px;">
+    <div class="card">
+      <h3 data-i18n="arcade.card1.h3">Scoring Tipo Tony Hawk</h3>
+      <div class="meta" data-i18n="arcade.card1.meta">Combo por contacto</div>
+      <p style="font-size:13px;" data-i18n-html="arcade.card1.body">Las <strong>volteretas</strong> (flips) se leen del estado de flip del animador y se <strong>pagan al completar</strong> el truco. Encadenar <em>links</em> sin tocar el suelo suma <strong>+1 al multiplicador</strong> con cada enlace.</p>
+    </div>
+    <div class="card">
+      <h3>Score HUD + Riser Audio</h3>
+      <div class="meta" data-i18n="arcade.card2.meta">Feedback al vuelo</div>
+      <p style="font-size:13px;" data-i18n-html="arcade.card2.body">HUD de puntuación en pantalla con el multiplicador en vivo. Un <strong>riser</strong> de audio marca el pico del combo cuando el multiplicador sube.</p>
+    </div>
+    <div class="card">
+      <h3 data-i18n="arcade.card3.h3">Capa de UI Completa</h3>
+      <div class="meta" data-i18n="arcade.card3.meta">Menú principal · Settings · Pausa</div>
+      <p style="font-size:13px;" data-i18n-html="arcade.card3.body">El <strong>menú principal</strong>, la pantalla de <strong>settings</strong> y el <strong>overlay de pausa</strong> (Esc) cubren toda la navegación fuera de la partida.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════ FRASES MINIMAX ════════════════════════════════════════════════ -->
+<section id="frases" class="reveal">
+  <div class="section-label">02</div>
+  <h2 data-i18n="frases.h2">Frases Generadas con MiniMax</h2>
+  <p data-i18n-html="frases.intro">5 frases de voz generadas por <strong>MiniMax</strong>, cada una con su <strong>subtítulo</strong> en pantalla y un <strong>slider de volumen</strong> de voz. Los subtítulos siguen el idioma de la UI vía <strong>i18n</strong>; el audio se mantiene siempre en español. Cada clip es un reproductor independiente: no interactúa con la música de fondo de la página (<code class="mono">audio-ost</code>).</p>
+  <p style="font-size:12px; color:var(--dim); margin-top:4px;"><span data-i18n="label.commits">Commits:</span> <code class="mono">5ec7cf8</code> · <code class="mono">c8f401c</code></p>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>audio-01</h3>
+      <p style="font-size:13px;" data-i18n="voice.line1">«No sé si Mary Jane sabrá que en NaN hay tokens ilimitados, ¿debería volver a llamarla y decírselo?»</p>
+      <audio controls preload="none" src="../assets/audios/audio-01.mp3"></audio>
+    </div>
+    <div class="card">
+      <h3>audio-02</h3>
+      <p style="font-size:13px;" data-i18n="voice.line2">«Un gran modelo conlleva un gran... ¿harness?»</p>
+      <audio controls preload="none" src="../assets/audios/audio-02.mp3"></audio>
+    </div>
+    <div class="card">
+      <h3>audio-03</h3>
+      <p style="font-size:13px;" data-i18n="voice.line3">«¿Soy un héroe... o un prompt con telarañas?»</p>
+      <audio controls preload="none" src="../assets/audios/audio-03.mp3"></audio>
+    </div>
+    <div class="card">
+      <h3>audio-04</h3>
+      <p style="font-size:13px;" data-i18n="voice.line4">«La IA me creó, los chistes son culpa de Adrián»</p>
+      <audio controls preload="none" src="../assets/audios/audio-04.mp3"></audio>
+    </div>
+    <div class="card">
+      <h3>audio-05</h3>
+      <p style="font-size:13px;" data-i18n="voice.line5">«No es un bug, es una característica»</p>
+      <audio controls preload="none" src="../assets/audios/audio-05.mp3"></audio>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════ IMÁGENES DEL CIELO ════════════════════════════════════════════════ -->
+<section id="sky" class="reveal">
+  <div class="section-label">03</div>
+  <h2 data-i18n="sky.h2">Imágenes del Cielo</h2>
+  <p data-i18n-html="sky.intro">Las 3 placas fotográficas que usa el <strong>SkyDome</strong> para proyectar el cielo del juego, tratadas para ser coherentes entre sí y con la niebla.</p>
+  <p style="font-size:12px; color:var(--dim); margin-top:4px;"><span data-i18n="label.commits">Commits:</span> <code class="mono">afcad45</code> · <code class="mono">2b1d49d</code> · <code class="mono">68fc169</code> · <code class="mono">91aeefd</code></p>
+
+  <div class="gallery">
+    <figure>
+      <img src="../assets/sky.webp" alt="Placa diurna estereográfica del SkyDome" loading="lazy">
+      <figcaption data-i18n="sky.fig.day">Day — placa diurna estereográfica, luz de mediodía.</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/sky-night.webp" alt="Placa nocturna del SkyDome" loading="lazy">
+      <figcaption data-i18n="sky.fig.night">Night — placa nocturna con handover al atardecer.</figcaption>
+    </figure>
+    <figure>
+      <img src="../assets/sky-horizon.webp" alt="Franja de horizonte azimuthal" loading="lazy">
+      <figcaption data-i18n="sky.fig.horizon">Horizon — franja azimuthal que coincide con la niebla por construcción.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════ CONFIG + MÚSICA ════════════════════════════════════════════════ -->
+<section id="config" class="reveal">
+  <div class="section-label">04</div>
+  <h2 data-i18n="config.h2">Variables de Configuración y Música</h2>
+
+  <h3 style="margin-top:20px; margin-bottom:12px;">GLOBALS (src/contracts/globals.ts)</h3>
+  <table class="budget-table">
+    <tr>
+      <th>Variable</th>
+      <th data-i18n="th.value">Valor</th>
+      <th data-i18n="th.purpose">Propósito</th>
+    </tr>
+    <tr>
+      <td><code class="mono">worldSeed</code></td>
+      <td class="num">1337</td>
+      <td data-i18n="cfg.purpose.seed">Determinismo — misma seed = ciudad idéntica</td>
+    </tr>
+    <tr>
+      <td><code class="mono">maxDeltaSeconds</code></td>
+      <td class="num">1/20</td>
+      <td>Clamp anti tab-switch</td>
+    </tr>
+    <tr>
+      <td><code class="mono">fixedStep</code></td>
+      <td class="num">1/120</td>
+      <td data-i18n="cfg.purpose.fixedstep">Solver de péndulo</td>
+    </tr>
+    <tr>
+      <td><code class="mono">gravity</code></td>
+      <td class="num">-32 m/s²</td>
+      <td data-i18n="cfg.purpose.gravity">Aceleración gravitatoria del mundo</td>
+    </tr>
+  </table>
+
+  <h3 style="margin-top:20px; margin-bottom:12px;" data-i18n="config.budgetblock.h3">Bloque Budget</h3>
+  <table class="budget-table">
+    <tr>
+      <th data-i18n="th.metric">Métrica</th>
+      <th>Budget</th>
+    </tr>
+    <tr>
+      <td><code class="mono">targetFps</code></td>
+      <td class="num">60</td>
+    </tr>
+    <tr>
+      <td><code class="mono">maxFrameMs</code></td>
+      <td class="num">16.7</td>
+    </tr>
+    <tr>
+      <td><code class="mono">maxDrawCalls</code></td>
+      <td class="num">220</td>
+    </tr>
+    <tr>
+      <td><code class="mono">maxTriangles</code></td>
+      <td class="num">900k</td>
+    </tr>
+    <tr>
+      <td><code class="mono">maxJsHeapMb</code></td>
+      <td class="num">512</td>
+    </tr>
+    <tr>
+      <td><code class="mono">maxLoadMs</code></td>
+      <td class="num">3000</td>
+    </tr>
+  </table>
+
+  <h3 style="margin-top:28px; margin-bottom:12px;" data-i18n="config.tuning.h3">Tuning y Settings fuera del loop</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h3 data-i18n="config.card1.h3">Dilatación Temporal Global</h3>
+      <div class="meta">commit <code class="mono">ed37934</code></div>
+      <p style="font-size:13px;" data-i18n-html="config.card1.body">El tiempo del mundo se ralentiza y se siente más cómodo con una <strong>dilatación global del 25%</strong>: <code class="mono">k=0.75</code> aplicado con <code class="mono">gravityScale</code>.</p>
+    </div>
+    <div class="card">
+      <h3>voiceInterval</h3>
+      <div class="meta" data-i18n="config.card2.meta">Frecuencia de voces</div>
+      <p style="font-size:13px;" data-i18n-html="config.card2.body"><code class="mono">20s</code> de tiempo de juego entre cada voz del personaje cuando el modo arcade está activo.</p>
+    </div>
+    <div class="card">
+      <h3 data-i18n="config.card3.h3">Settings del Juego</h3>
+      <p style="font-size:13px;" data-i18n-html="config.card3.body"><strong>Sliders independientes</strong> de volumen SFX / voz / música, <strong>toggle</strong> del overlay de debug, e <strong>idioma EN/ES</strong> vía i18n.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:28px; margin-bottom:12px;" data-i18n="config.music.h3">Música — OST</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h3 data-i18n="config.card4.h3">OST de Fondo con Bus de Música</h3>
+      <div class="meta" data-i18n="config.card4.meta">bus de volumen de música</div>
+      <p style="font-size:13px;" data-i18n-html="config.card4.body">El <strong>OST de fondo</strong> tiene su propio <strong>bus de volumen de música</strong> con slider independiente — el mismo <code class="mono">ost.mp3</code> que suena en esta página.</p>
+    </div>
+  </div>
+  <p style="font-size:12px; color:var(--dim); margin-top:8px;"><span data-i18n="label.commits">Commits:</span> <code class="mono">b99c107</code> · <code class="mono">ec65228</code></p>
+</section>
+
+<!-- ════════════════════════════════════════════════ ANTES Y DESPUÉS ════════════════════════════════════════════════ -->
+<section id="compare" class="reveal">
+  <div class="section-label">05</div>
+  <h2 data-i18n="compare.h2">Antes y Después</h2>
+  <p data-i18n="compare.intro">El contraste entre la primera fase y el resultado final: de una ciudad de cajas placeholder a una ciudad procedencial con fachadas, sombras, niebla y cielo fotográfico.</p>
+
+  <div class="compare-grid compare-split">
+    <figure>
+      <img src="../captures/2026-08-08T16-08-48Z/shots/hero.png" alt="Fase 1 — ciudad de cajas" loading="lazy">
+      <figcaption data-i18n-html="compare.fig1">Fase 1 — Agosto 2026 (commit <code class="mono">202c1f4</code>). La ciudad de cajas placeholder del primer loop.</figcaption>
+    </figure>
+    <figure>
+      <video controls muted playsinline preload="metadata" src="../assets/hero-video.mov" style="width:100%; display:block;"></video>
+      <figcaption data-i18n="compare.fig2">Versión final — el mismo metraje del hero de Inicio, con el juego ya pulido.</figcaption>
+    </figure>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3 data-i18n="compare.otherh3">Otros ajustes fuera del loop</h3>
+    <ul class="learning-list" style="margin-top:8px;">
+      <li><span class="num">▸</span><span class="text" data-i18n="compare.li1">Alturas de ciudad subidas: bins +25% y altura mínima duplicada dos veces.</span></li>
+      <li><span class="num">▸</span><span class="text" data-i18n="compare.li2">Depth buffer logarítmico — mata el flicker del asfalto.</span></li>
+      <li><span class="num">▸</span><span class="text" data-i18n="compare.li3">Tráfico adelgazado ~45%.</span></li>
+      <li><span class="num">▸</span><span class="text" data-i18n="compare.li4">Tobillos retorcidos arreglados en el rig.</span></li>
+      <li><span class="num">▸</span><span class="text" data-i18n="compare.li5">Edificios procedurales propios reemplazando el set GLB.</span></li>
+      <li><span class="num">▸</span><span class="text" data-i18n="compare.li6">Streaks de viento como líneas aditivas de 1px.</span></li>
+      <li><span class="num">▸</span><span class="text" data-i18n="compare.li7">Edificios bajos swingable.</span></li>
+      <li><span class="num">▸</span><span class="text">i18n EN/ES.</span></li>
+    </ul>
+  </div>
+</section>
+
+</main>
+</div><!-- /tab-panel definitive -->
+
+<!-- ════════════════════════════════════════════════ BACKGROUND OST ════════════════════════════════════════════ -->
+<!-- Fuera de los tab-panels: la música persiste al cambiar de pestaña. -->
+<audio id="audio-ost" loop preload="auto" src="../assets/ost.mp3"></audio>
+
+<!-- ════════════════════════════════════════════ FOOTER ══════════════════════════════════════════ -->
+<footer>
+  <div class="links">
+    <a href="https://github.com/adriaansaeez/spider-NaN">GitHub</a> ·
+    <a href="../">Jugar</a> ·
+    <a href="#">NaN Gauntlet Loop Challenge</a>
+  </div>
+  <p data-i18n="footer.line1">Web Slinger · Agosto 2026 · Opus + DeepSeek V4 Flash + GPT-5.5 · Three.js + TypeScript + Vite</p>
+  <p style="margin-top:4px;">NaN Gauntlet Loop Challenge</p>
+</footer>
+
+<!-- ════════════════════════════════════════════ SCROLL REVEAL + TABS ════════════════════════════════════════════ -->
+<script>
+(function() {
+  var revealObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    revealObserver.observe(el);
+  });
+
+  // ── Tab switching ──
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var panels = document.querySelectorAll('.tab-panel');
+
+  function switchTab(tabId) {
+    tabBtns.forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+    });
+    panels.forEach(function(panel) {
+      panel.classList.toggle('active', panel.id === 'panel-' + tabId);
+    });
+    document.querySelectorAll('.inicio-link').forEach(function(l) {
+      l.style.display = tabId === 'inicio' ? '' : 'none';
+    });
+    document.querySelectorAll('.loop1-link').forEach(function(l) {
+      l.style.display = tabId === 'loop1' ? '' : 'none';
+    });
+    document.querySelectorAll('.loop2-link').forEach(function(l) {
+      l.style.display = tabId === 'loop2' ? '' : 'none';
+    });
+    document.querySelectorAll('.definitive-link').forEach(function(l) {
+      l.style.display = tabId === 'definitive' ? '' : 'none';
+    });
+    var activePanel = document.getElementById('panel-' + tabId);
+    if (activePanel) {
+      activePanel.querySelectorAll('.reveal:not(.visible)').forEach(function(el) {
+        revealObserver.observe(el);
+      });
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  tabBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      switchTab(this.getAttribute('data-tab'));
+    });
+  });
+
+  document.querySelectorAll('.loop1-link, .loop2-link, .definitive-link').forEach(function(l) {
+    l.style.display = 'none';
+  });
+
+  document.querySelectorAll('.cta-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      switchTab(this.getAttribute('data-tab'));
+    });
+  });
+
+  // ── Active nav link on scroll ──
+  window.addEventListener('scroll', function() {
+    var activePanel = document.querySelector('.tab-panel.active');
+    if (!activePanel) return;
+    var sections = activePanel.querySelectorAll('section[id]');
+    var scrollY = window.scrollY + 80;
+    var navLinks = activePanel.querySelectorAll('.nav-link');
+    sections.forEach(function(section) {
+      var top = section.offsetTop;
+      var height = section.offsetHeight;
+      var id = section.getAttribute('id');
+      if (scrollY >= top && scrollY < top + height) {
+        navLinks.forEach(function(link) {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + id) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  });
+
+  // ── Nav link clicks ──
+  document.querySelectorAll('.nav-link').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      var target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+})();
+</script>
+
+<!-- ════════════════════════════════════════════ INICIO COMPARA: VIDEO IO ════════════════════════════════════════════ -->
+<script>
+(function() {
+  var section = document.getElementById('inicio-compara');
+  if (!section) return;
+  var videos = section.querySelectorAll('video');
+  if (!videos.length) return;
+
+  var videoObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        videos.forEach(function(v) {
+          var p = v.play();
+          if (p && typeof p.catch === 'function') p.catch(function() {});
+        });
+      } else {
+        videos.forEach(function(v) { v.pause(); });
+      }
+    });
+  }, { threshold: 0.15 });
+
+  videoObserver.observe(section);
+})();
+</script>
+
+<!-- ════════════════════════════════════════════ I18N (ES default + EN) ════════════════════════════════════════════ -->
+<script>
+(function() {
+  var EN = {
+  "tab.inicio": "Home",
+  "tab.loop1": "Loop 1 — Core",
+  "tab.loop2": "Loop 2 — Visual",
+  "tab.definitive": "Final",
+  "nav.inicio": "Home",
+  "nav.explorar": "Explore",
+  "nav.prompt": "Prompt",
+  "nav.arquitectura": "Architecture",
+  "nav.fases": "Phases",
+  "nav.iteracion": "Iteration",
+  "nav.metricas": "Metrics",
+  "nav.referencia": "Reference",
+  "nav.capturas": "Captures",
+  "nav.evidencia": "Evidence",
+  "nav.arcade": "Arcade",
+  "nav.frases": "Lines",
+  "nav.cielo": "Sky",
+  "nav.config": "Config",
+  "nav.comparar": "Before/After",
+  "promptblock.label": "INITIAL PROMPT",
+  "hero.tag": "NaN Gauntlet Loop · August 2026",
+  "hero.subtitle.inicio": "Web-swinging game in Three.js, built with an AI-agent gauntlet loop: <strong>Opus orchestrates</strong>, <strong>DeepSeek V4 Flash builds</strong>, <strong>GPT-5.5 critiques</strong>.",
+  "hero.meta.orchestrator": "<strong>Opus 5</strong> orchestrator",
+  "hero.meta.builder": "<strong>DeepSeek V4 Flash</strong> builder",
+  "badge.determinism": "Determinism PASS",
+  "badge.consoleclean": "Console clean",
+  "label.about": "About the project",
+  "intro.h2": "Build Log",
+  "intro.p1": "<strong>Web Slinger</strong> is a web-swinging game built in <strong>Three.js</strong> from scratch, using a <strong>gauntlet loop</strong>: a continuous <em>build → critique → fix</em> cycle where three AI agents collaborate.",
+  "intro.p2": "<strong>Opus</strong> acts as orchestrator and makes the architectural decisions. <strong>DeepSeek V4 Flash</strong> builds each system: procedural city, swing physics, camera, effects, and visual polish. <strong>GPT-5.5</strong> critiques the implementation against real reference material, frame by frame, and rejects anything that falls short of AAA quality.",
+  "intro.p3": "This log documents every loop, its iterations, and the performance and determinism evidence that validated the final result.",
+  "label.explore": "Explore",
+  "explora.h2": "Explore the Process",
+  "explora.p": "Two complete build cycles, documented phase by phase.",
+  "inicio.play": "Play",
+  "inicio.play.desc": "Jump straight into the game: web-swinging through the procedural city.",
+  "cta.loop1.desc": "Procedural Manhattan city, web-swing physics, chase camera, state machine, and an automated evidence pipeline.",
+  "cta.loop2.desc": "Authored building models, photographic day/night lighting, articulated hero animations, and visual effects.",
+  "label.compare.videos": "Video comparison",
+  "inicio.compara.h2": "Then & Now — in Motion",
+  "inicio.compara.p": "The first recorded footage of the game next to the definitive result after the gauntlet loop: the same camera chasing the same hero, but in a city that stopped being gray boxes.",
+  "inicio.compara.left": "Initial Version — First Loop",
+  "inicio.compara.right": "Definitive Version — Post-Gauntlet",
+  "hero.subtitle.loop1": "Web-swinging game in Three.js, built with a Gauntlet Loop: Opus orchestrating, DeepSeek V4 Flash building, GPT-5.5 critiquing.",
+  "prompt.h2": "The Prompt",
+  "prompt.intro": "Prompt adapted from the Gauntlet Challenge, focused on a Spider-Man game in Three.js with a builder + critic agent cycle.",
+  "prompt.annot1": "The prompt asks for AAA quality but with a bounded scope: web-swinging, not a full game.",
+  "prompt.annot2": "The Gauntlet pattern: separate builder + critic. The critic is “really harsh” — it doesn’t approve mediocrity.",
+  "prompt.annot3": "The key: compare against real reference material (Spider-Man 2 PS5), not a subjective opinion.",
+  "arch.h2": "Loop Architecture",
+  "arch.intro": "The Gauntlet Loop is a continuous cycle: <strong>build → critique → fix → evidence</strong>. Three AI models work in tandem: Opus orchestrates, DeepSeek V4 Flash builds, GPT-5.5 critiques.",
+  "arch.node.human.label": "Human",
+  "arch.node.human.sub": "Defines vision",
+  "arch.node.prompt.sub": "Specification",
+  "arch.node.builder.sub": "Builder",
+  "arch.node.evidence.label": "Evidence",
+  "arch.node.evidence.sub": "Captures + metrics",
+  "arch.models.h3": "The 3 Models of the Loop",
+  "agent.role.orchestrator": "Orchestrator",
+  "agent.opus.files": "Coordinates agents<br>Makes architectural decisions<br>Assigns tasks<br>Resolves conflicts between systems",
+  "agent.role.builder": "Builder",
+  "agent.deepseek.files": "Implements systems: city, traversal, camera, FX<br>Writes code<br>Fixes bugs<br>Iterates on critic feedback",
+  "agent.gpt.files": "Reviews against real reference material<br>Identifies concrete gaps<br>Compares frame-by-frame<br>Rejects mediocrity",
+  "arch.stack.h3": "Tech Stack",
+  "arch.stack.body": "\n      <strong>Runtime:</strong> Three.js 0.169 · TypeScript · Vite<br>\n      <strong>Platform:</strong> Orca (multi-agent IDE)<br>\n      <strong>Evidence:</strong> Playwright · Node.js capture pipeline<br>\n      <strong>Rendering:</strong> InstancedMesh · Custom shaders · Frustum culling\n    ",
+  "arch.contract.h3": "Communication Contract",
+  "arch.contract.body": "Agents <strong>never import from each other</strong>. They communicate only through <code class=\"mono\" style=\"color:var(--accent);\">src/contracts/index.ts</code>, which defines the <code class=\"mono\">AnchorQuery</code> interface. This lets the city be swapped out without touching the swing system.",
+  "fases.h2": "Build Phases",
+  "fases.intro": "The first iteration of the Gauntlet Loop. Each phase was built by DeepSeek V4 Flash (builder) and reviewed by GPT-5.5 (critic), with Opus (orchestrator) coordinating the flow.",
+  "fases.swipehint": "← Swipe to see all phases →",
+  "phase.tag.0": "Phase 0 — Research",
+  "phase.0.h3": "Reference Analysis & Specifications",
+  "phase.0.detail": "\n        <strong>Builder:</strong> DeepSeek V4 Flash · <strong>Critic:</strong> GPT-5.5 · <strong>Orchestrator:</strong> Opus<br>\n        Frame-by-frame analysis of 12 Spider-Man 2 PS5 sequences (54 reference frames). Creation of quantified specs: FEEL_SPEC.md, VISUAL_SPEC.md, CRITIC_RUBRIC.md.\n      ",
+  "phase.tag.1": "Phase 1 — Core Foundation",
+  "phase.1.h3": "Boot, RAF Loop, Telemetry",
+  "phase.1.detail": "\n        <strong>Builder:</strong> DeepSeek V4 Flash · <strong>Critic:</strong> GPT-5.5 · <strong>Orchestrator:</strong> Opus<br>\n        Boot system, requestAnimationFrame loop, frozen <code class=\"mono\">window.__GAUNTLET__</code> API, debug HUD, performance monitor.\n      ",
+  "phase.tag.2": "Phase 2 — City Generation",
+  "phase.2.h3": "Procedural Manhattan City",
+  "phase.2.detail": "\n        <strong>Builder:</strong> DeepSeek V4 Flash · <strong>Critic:</strong> GPT-5.5 · <strong>Orchestrator:</strong> Opus · <strong>Iterations:</strong> 2<br>\n        InstancedMesh block grid with chunk streaming. Custom SkyDome with day/night cycle. Emissive windows at night. Seed-deterministic: same seed = byte-identical city.\n      ",
+  "phase.tag.3": "Phase 3 — Traversal",
+  "phase.3.h3": "Web-Swing Physics",
+  "phase.3.detail": "\n        <strong>Builder:</strong> DeepSeek V4 Flash · <strong>Critic:</strong> GPT-5.5 · <strong>Orchestrator:</strong> Opus · <strong>Iterations:</strong> 4<br>\n        Fixed-step pendulum solver. Web attach/release mechanics. Directed dash, dive, air control. State machine: idle → perch → swing → release → dash → dive.\n      ",
+  "phase.tag.4": "Phase 4 — Camera / FX / Input",
+  "phase.4.h3": "Game Feel Layer",
+  "phase.4.detail": "\n        <strong>Builder:</strong> DeepSeek V4 Flash · <strong>Critic:</strong> GPT-5.5 · <strong>Orchestrator:</strong> Opus<br>\n        Chase camera with critically-damped springs. Speed-driven FOV curve. Screen-space speed streaks and wind wisps. Web-line rendering. Buffered input system.\n      ",
+  "phase.tag.5": "Phase 5 — Evidence Harness",
+  "phase.5.h3": "Automated Evidence Pipeline",
+  "phase.5.detail": "\n        <strong>Builder:</strong> DeepSeek V4 Flash · <strong>Critic:</strong> GPT-5.5 · <strong>Orchestrator:</strong> Opus<br>\n        Playwright captures: screenshots, video sequences, performance benchmarks. Determinism verification (byte-identical check). Console-error gate. Progress page generation.\n      ",
+  "iter.h2": "The Iteration Cycle",
+  "iter.intro": "Each system went through multiple rounds of <strong>build → critique → fix</strong>. DeepSeek V4 Flash implemented, GPT-5.5 compared against the reference material and issued a verdict with evidence, and Opus coordinated the flow.",
+  "iterflow.build1": "DeepSeek V4 Flash implements",
+  "iterflow.review1": "GPT-5.5 reviews",
+  "iterflow.fail1": "FAIL + feedback",
+  "iterflow.fix1": "DeepSeek V4 Flash fixes",
+  "iter.card.city.h3": "Procedural City",
+  "iter.card.city.meta": "2 iterations",
+  "iter.card.city.body": "<strong>ITER1:</strong> InstancedMesh capacity overflow, unoptimized chunks. Critic found GPU buffer leak.<br><strong>ITER2:</strong> Chunk streaming fixed, budgets within limits. PASS.",
+  "iter.card.traversal.meta": "4 iterations",
+  "iter.card.traversal.body": "<strong>ITER1:</strong> Unstable pendulum, erratic release.<br><strong>ITER2:</strong> Fixed-step solver, improved attach.<br><strong>ITER4:</strong> Directed dash + dive working. PASS.",
+  "iter.card.camera.meta": "1 iteration",
+  "iter.card.camera.body": "<strong>ITER1:</strong> Chase camera with critical springs, FOV curve, speed streaks. Approved directly against reference.",
+  "iter.card.integration.h3": "Integration",
+  "iter.card.integration.body": "Integration waves verified that every system works together. Each wave = rebuild + full capture suite.",
+  "iterex.tag.city": "EXAMPLE: CITY_ITER1 → CITY_ITER2",
+  "metrics.h2": "Results & Metrics",
+  "metrics.intro": "Data from the latest evidence run (commit <code class=\"mono\">afcad45</code>, seed <code class=\"mono\">1337</code>).",
+  "metric.label.triangles": "Triangles",
+  "metric.label.determinism": "Determinism",
+  "metric.label.consoleerrors": "Console errors",
+  "metric.label.capturesrun": "Captures run",
+  "metric.label.loc": "Lines of code",
+  "metric.label.tsfiles": ".ts files",
+  "metrics.determinism.h3": "Determinism Verification",
+  "metrics.determinism.body": "Same seed (<code class=\"mono\">1337</code>) → byte-identical city. Geometry hash: <code class=\"mono\">13e694dc9b05…</code> vs <code class=\"mono\">13e694dc9b05…</code>. 969 identical buildings. Test surfaces: 3 points, identical. Visual dHash: 8 bits ≤ 12. Structural tris: 546k/546k vs 531k/531k.",
+  "ref.h2": "Reference Material",
+  "ref.intro": "Frame-by-frame analysis of Spider-Man 2 PS5 as ground truth for the critic. 12 sequences, 54 reference frames.",
+  "ref.fig.01": "01 · Perch — starting position on ledge",
+  "ref.fig.02": "02 · Look down — assessing the space",
+  "ref.fig.03": "03 · Fall — transition to airborne",
+  "ref.fig.04": "04 · Airborne flair — freefall pose",
+  "ref.fig.05": "05 · Web attach — web connection",
+  "ref.fig.06": "06 · Inverted swing — lowest point of the swing",
+  "ref.docs.h3": "Analysis Documents",
+  "ref.docs.body": "\n      The reference-pack contains 17 analysis documents: STATE_MACHINE.md, SWING_ANALYSIS.md, ANCHOR_ANALYSIS.md, CAMERA_ANALYSIS.md, GAME_FEEL.md, MEASUREMENTS.md, VISUAL_FEEDBACK.md, and more. Each document quantifies specific aspects of the reference gameplay so the critic has objective data, not opinions.\n    ",
+  "cap.h2": "Game Captures",
+  "cap.intro": "Automated captures from the evidence harness. Time-of-day sweep showing the procedural city under dynamic lighting.",
+  "cap.fig.hero": "Hero — main game view",
+  "cap.fig.noon": "Noon — peak lighting",
+  "cap.fig.sunset": "Sunset — warm tones",
+  "cap.fig.evening": "Night — emissive windows active",
+  "cap.fig.midnight": "Midnight — dark ambience",
+  "cap.fig.sunrise": "Sunrise — soft transition",
+  "cap.fig.morning": "Morning — side light",
+  "cap.fig.lateafternoon": "Late afternoon — long shadows",
+  "hero.tag.loop2": "Loop 2 — Visual Polish · August 2026",
+  "hero.subtitle.loop2": "From prototypes to product: building models, photographic lighting, articulated animations, and visual effects — all driven by the same builder + critic cycle.",
+  "hero2.meta.subsystems": "<strong>4 subsystems</strong> in parallel",
+  "hero2.meta.commits": "<strong>~20 commits</strong> of visual polish",
+  "hero2.meta.docs": "<strong>10+ docs</strong> of independent critique",
+  "fases2.intro": "The second loop transformed the city from placeholder boxes into an atmospheric Manhattan with authored buildings, real textures, photographic lighting, and an articulated hero. Every subsystem went through the same <strong>build → critique → fix</strong> cycle.",
+  "sys.tag.modeling": "Modeling — City Builder",
+  "sys.modeling.h3": "Authored Buildings + Facades",
+  "sys.modeling.detail": "\n        <strong>GLB pipeline:</strong> 40MB → 1.4MB, 16 Blender variants<br>\n        <strong>Registry:</strong> 15 complete variants, 4 archetypes (residential, office, low-rise, civic)<br>\n        <strong>Facade system:</strong> Floor-proportional bands, 4 faces, 0.08m inset<br>\n        <strong>Ground:</strong> Asphalt + textured pavement with world-space UV\n      ",
+  "sys.tag.lighting": "Lighting — DayNight + SkyDome",
+  "sys.lighting.h3": "Photographic Day/Night Cycle",
+  "sys.lighting.detail": "\n        <strong>SkyDome:</strong> 3 photographic plates (day, night, horizon strip) + procedural gradient<br>\n        <strong>Fog:</strong> Continuous smoothstep, camera-driven, no discontinuity<br>\n        <strong>Shadows:</strong> 2048x2048 PCF, 640m ortho, sun-following<br>\n        <strong>Windows:</strong> Emissive fade-in at dusk, warm/cool per band\n      ",
+  "sys.tag.animation": "Animation — Pose Library + Motion",
+  "sys.animation.h3": "Articulated Hero with 21 Variants",
+  "sys.animation.detail": "\n        <strong>Library:</strong> 912 hand-authored poses, 7 states × 2-3 variants<br>\n        <strong>Motion layer:</strong> Variation → Drive → Flips → Secondary<br>\n        <strong>Skin:</strong> GLB Mixamo hybrid (4 clips + pose library for traversal)<br>\n        <strong>Fix:</strong> Flip leak → state-exact resolution, 0° on contact\n      ",
+  "sys.tag.fx": "Effects — FxSystem + Speed",
+  "sys.fx.detail": "\n        <strong>Web:</strong> Thin line (0.04m), shoot-out + snap transients<br>\n        <strong>Glints:</strong> White flash on attach/release<br>\n        <strong>Speed:</strong> Streaks aligned to velocity vector, tinted fog<br>\n        <strong>Audio:</strong> Wind/thwip/whoosh synthesized\n      ",
+  "timeline.h2": "Timeline",
+  "timeline.intro": "Chronological sequence of Loop 2 commits, grouped by subsystem.",
+  "timeline.swipehint": "← Swipe to see all commits →",
+  "t2.tag.modeling.assets": "Modeling — Assets",
+  "t2.detail.modelingassets": "\n        <strong>Commits:</strong> <code class=\"mono\">0da29f7</code> · <code class=\"mono\">9ad5fa1</code> · <code class=\"mono\">eba38c1</code><br>\n        Blender → compressed GLB export (meshopt). 16 variants, re-origin to y=0, MeshLambertMaterial for DayNight compatibility. Registry with archetypes and fit constraints.\n      ",
+  "t2.tag.modeling.fix": "Modeling — Fix",
+  "t2.detail.modelingfix": "\n        <strong>Commit:</strong> <code class=\"mono\">3247711</code><br>\n        Buried and stretched models. Fix: fit to bounding box, slenderness ratio matching.\n      ",
+  "t2.tag.lighting.sky": "Lighting — Sky",
+  "t2.h3.skydome": "Photographic SkyDome",
+  "t2.detail.sky": "\n        <strong>Commits:</strong> <code class=\"mono\">afcad45</code> · <code class=\"mono\">2b1d49d</code> · <code class=\"mono\">68fc169</code> · <code class=\"mono\">91aeefd</code><br>\n        Stereographic day/night plates + azimuthal horizon strip. Luminance normalization. Radial coverage with no rims.\n      ",
+  "t2.tag.lighting.fog": "Lighting — Fog",
+  "t2.h3.fog": "Continuous Camera-Driven Fog",
+  "t2.detail.fog": "\n        <strong>Commit:</strong> <code class=\"mono\">35cf5c6</code><br>\n        Continuous altitude smoothstep (8-150m), night scale 0.6/0.95. The critic called it \"the single biggest quality gain in the project's history\".\n      ",
+  "t2.tag.anim.library": "Animation — Library",
+  "t2.detail.animlibrary": "\n        <strong>Commits:</strong> <code class=\"mono\">1be4d90</code> · <code class=\"mono\">11a80ea</code><br>\n        912 poses, 7 states. SCISSOR/CANNONBALL/LAYOUT re-authored. motionSwingDriveAuthority 0.65→0.3. State-exact flip resolution.\n      ",
+  "t2.tag.anim.skin": "Animation — Skin",
+  "t2.detail.animskin": "\n        <strong>Commits:</strong> <code class=\"mono\">6a80bdb</code> · <code class=\"mono\">9a39ff9</code> · <code class=\"mono\">d9138cd</code><br>\n        Mixamo GLB with 4 clips. Pose library drive for traversal states. Double-sided materials fix. Dash web throw.\n      ",
+  "t2.h3.ground": "Textured Asphalt + Pavement",
+  "t2.detail.ground": "\n        <strong>Commits:</strong> <code class=\"mono\">c527970</code> · <code class=\"mono\">e85d2d4</code> · <code class=\"mono\">487d3f8</code><br>\n        World-space UV override (4m/tile). Anisotropic filtering. Triple-multiply bug fix. Disposal pipeline.\n      ",
+  "t2.detail.shadows": "\n        <strong>Commits:</strong> <code class=\"mono\">fcbd9ce</code> · <code class=\"mono\">a1993b2</code><br>\n        PCF 2048², 640m ortho. Shadow direction = sun elevation. Night disables pass. +39 draws, +0.1ms p95.\n      ",
+  "t2.detail.bufferleak": "\n        <strong>Commit:</strong> <code class=\"mono\">950a19e</code><br>\n        removeChunk() wasn't disposing InstancedMesh. Rate: 5.6 buffers/s, 1.7 MB/min. Fix: complete disposeChunkMesh().\n      ",
+  "iter2.intro": "Each subsystem was built by DeepSeek V4 Flash, reviewed by GPT-5.5 as independent critic, and coordinated by Opus. Verdicts are binary: PASS or FAIL with quantified evidence.",
+  "iterflow.build2": "DeepSeek implements",
+  "iterflow.review2": "GPT-5.5 critiques",
+  "iterflow.fail2": "FAIL + gaps",
+  "iterflow.fix2": "DeepSeek fixes",
+  "iter2.cityh3": "City Modeling — Verdicts",
+  "iter2.card.buildingsvisual": "\n        <strong>Main gap:</strong> Authored models visually inert at gameplay distances (0.2-6.8% of pixels). Only 53/486 buildings (10.9%) had a GLB model. Registry ceiling at 85m excluded the skyline.\n      ",
+  "iter2.card.buildingsperf": "\n        <strong>Draw calls:</strong> 109/220 (50% headroom) · <strong>Tris:</strong> 584k/900k (35%) · <strong>Heap:</strong> 39.5MB/512MB · <strong>Frame p95:</strong> 10.2ms/16.7ms<br>\n        <strong>Bug found:</strong> GPU buffer leak in chunk streaming (+1.7 MB/min).\n      ",
+  "iter2.card.cityatmo": "\n        <strong>\"The single biggest quality gain in the project's history.\"</strong> Fog continuity resolved. Skyline shows multiple ranks of towers to the horizon. Facades now read as architecture.\n      ",
+  "iter2.animh3": "Animation — Verdicts",
+  "iter2.card.anim1": "\n        <strong>P0:</strong> Flip leak into WALL_RUN (36.9°, 226.7°, 334.8° pitch measured).<br>\n        <strong>P1:</strong> Swing variants unreadable at gameplay scale. Variant 0 always selected.<br>\n        <strong>P2:</strong> No idle pose, no secondary motion.\n      ",
+  "iter2.card.anim2": "\n        <strong>Flip:</strong> State-exact resolution → 0° on contact frame (PASS).<br>\n        <strong>Silhouettes:</strong> SCISSOR/CANNONBALL/LAYOUT distinct at 40-80px (PASS).<br>\n        <strong>Idle:</strong> Weight-shift + breathing layer added (PASS).<br>\n        <strong>Blocked:</strong> Traversal non-determinism propagates to visit numbering.\n      ",
+  "iterex.tag.flip": "EXAMPLE: ANIM_ITER1 → ANIM_ITER2 — FLIP FIX",
+  "iterex.tag.fog": "EXAMPLE: CITY_ATMO_ITER2 — FOG CONTINUITY",
+  "metrics2.h2": "Budgets & Metrics",
+  "metrics2.intro": "Loop 2 kept every Loop 1 budget while adding significant visual complexity. Wide headroom across every metric.",
+  "th.metric": "Metric",
+  "loadtime.headroom": "6% of budget",
+  "metrics2.cityh3": "City — Post-Loop 2 Metrics",
+  "metric.buildings.spawn": "Buildings (spawn)",
+  "metric.buildings.posttraversal": "Buildings (post-traversal)",
+  "metric.maxheight": "Max height",
+  "metric.glbvariants": "GLB variants",
+  "metric.archetypes": "Archetypes",
+  "metric.generation": "Generation (486 bldgs)",
+  "metrics2.animh3": "Animation — Metrics",
+  "metric.states": "States",
+  "metric.totalvariants": "Total variants",
+  "metric.flipcontact": "Flip on contact",
+  "metric.trisrange": "Tris (range)",
+  "metrics2.summaryh3": "Critique Summary — Loop 2",
+  "evid2.h2": "Visual Evidence",
+  "evid2.intro": "Frame-by-frame comparisons of animations and captures of the current game state, post-Loop 2.",
+  "evid2.statecomp.intro": "Every hero state compared side by side: reference vs implementation. The critic checks silhouette, proportion, and readability at gameplay scale (40-80px).",
+  "fig.swingvariants": "SWING — 3 variants: SCISSOR / CANNONBALL / LAYOUT",
+  "fig.swingsheet": "Comparison of the 3 SWING variants: SCISSOR (long diagonal with wide V), CANNONBALL (compact ball), LAYOUT (inverted cross with extended arms)",
+  "evid2.fliph3": "Flip Resolution — Telemetry",
+  "evid2.flipfix.body": "\n      <strong>Before (ITER1):</strong> Hero emitted 214.7° of flip pitch entering WALL_RUN. The old mechanism accelerated a cut-short flip over 0.18s, leaking intermediate pitch into contact states.<br><br>\n      <strong>Fix:</strong> State-exact resolution — the first non-airborne frame IS the whole turn. Pitch/roll = 0° from that frame. Three independent gates: FlipController zeroing, isSurfaceContactState at rig application, MotionSample zeroing.<br><br>\n      <strong>After (ITER2):</strong> Flip pitch on WALL_RUN contact frame: <span style=\"color: var(--ok); font-weight: 700;\">0.0°</span>\n    ",
+  "evid2.fog.before.h3": "Before — Discontinuous Fog",
+  "evid2.fog.before.body": "\n        Discontinuity at y=20/y=80. Featureless pale field above. Brown-mauve void below. Skyline at 235m with no layered depth. Every camera altitude created a visible \"cut\".\n      ",
+  "evid2.fog.after.h3": "After — Continuous Fog",
+  "evid2.fog.after.body": "\n        Continuous altitude smoothstep (8-150m). Skyline shows multiple ranks of towers to the horizon with layered depth. \"The single biggest quality gain in the project's history.\" — GPT-5.5 Critic\n      ",
+  "evid2.asphalt.h3": "Asphalt (Roads)",
+  "evid2.asphalt.body": "\n        World-space UV override via onBeforeCompile. One tile = 4m independent of instance scale. Anisotropic filtering. Material color 0xffffff so the texture IS the albedo.\n      ",
+  "evid2.pavement.h3": "Pavement (Sidewalks)",
+  "evid2.pavement.body": "\n        Procedural texture with disposal pipeline. Triple-multiply bug fix: material color must not multiply the texture. Disposal on chunk teardown.\n      ",
+  "hero.tag.def": "NaN Gauntlet Loop · Final · post-Loop 2",
+  "hero.def.h1": "Final <span>—</span>",
+  "hero.def.subtitle": "Everything the author did <strong>outside the agents</strong>: arcade mode with combo scoring, MiniMax-generated lines, photographic sky, configuration, and closing polish.",
+  "hero.def.meta1": "<strong>Arcade</strong> + Tony Hawk combo",
+  "hero.def.meta2": "<strong>MiniMax</strong> voices with subtitles",
+  "hero.def.meta3": "<strong>3 plates</strong> of photographic sky",
+  "badge.5voices": "5 AI voices",
+  "badge.skydome3": "SkyDome 3 plates",
+  "arcade.h2": "Arcade Mode",
+  "arcade.intro": "Beyond the agent loops, the author added an <strong>arcade mode</strong> with an initial <em>free vs arcade</em> choice that enables the scoring system. <strong>Flips</strong> are read from the animator's flip state and pay out on completion; <em>chain links</em> without touching the ground add <strong>+1 to the multiplier</strong>. A <strong>score HUD</strong> and an audio <em>riser</em> accompany the Tony Hawk-style scoring.",
+  "arcade.modeimg.alt": "Mode select screen — Free vs Arcade",
+  "arcade.modeimg.caption": "Mode select screen — Free (no scoring system) vs Arcade (scoring active).",
+  "arcade.card1.h3": "Tony Hawk-Style Scoring",
+  "arcade.card1.meta": "Combo on contact",
+  "arcade.card1.body": "<strong>Flips</strong> are read from the animator's flip state and <strong>pay out on completing</strong> the trick. Chaining <em>links</em> without touching the ground adds <strong>+1 to the multiplier</strong> with each link.",
+  "arcade.card2.meta": "Feedback on the fly",
+  "arcade.card2.body": "On-screen score HUD with a live multiplier. An audio <strong>riser</strong> marks the combo peak as the multiplier climbs.",
+  "arcade.card3.h3": "Full UI Layer",
+  "arcade.card3.meta": "Main menu · Settings · Pause",
+  "arcade.card3.body": "The <strong>main menu</strong>, the <strong>settings</strong> screen, and the <strong>pause overlay</strong> (Esc) cover all navigation outside of a run.",
+  "label.commits": "Commits:",
+  "frases.h2": "MiniMax-Generated Lines",
+  "frases.intro": "5 voice lines generated with <strong>MiniMax</strong>, each with an on-screen <strong>subtitle</strong> and a voice <strong>volume slider</strong>. Subtitles follow the UI language via <strong>i18n</strong>; the audio always stays in Spanish. Each clip is an independent player: it doesn't interact with the page's background music (<code class=\"mono\">audio-ost</code>).",
+  "voice.line1": "I wonder if Mary Jane knows there are unlimited tokens in NaN. Should I call her back and tell her?",
+  "voice.line2": "With great model comes great... harness?",
+  "voice.line3": "Am I a hero... or just a prompt with cobwebs?",
+  "voice.line4": "The AI made me. The jokes are on Adrián.",
+  "voice.line5": "It's not a bug, it's a feature.",
+  "sky.h2": "Sky Images",
+  "sky.intro": "The 3 photographic plates the <strong>SkyDome</strong> uses to project the game's sky, treated to stay coherent with each other and with the fog.",
+  "sky.fig.day": "Day — stereographic day plate, midday light.",
+  "sky.fig.night": "Night — night plate with dusk handover.",
+  "sky.fig.horizon": "Horizon — azimuthal strip built to match the fog.",
+  "config.h2": "Configuration Variables & Music",
+  "th.value": "Value",
+  "th.purpose": "Purpose",
+  "cfg.purpose.seed": "Determinism — same seed = identical city",
+  "cfg.purpose.fixedstep": "Pendulum solver",
+  "cfg.purpose.gravity": "World gravitational acceleration",
+  "config.budgetblock.h3": "Budget Block",
+  "config.tuning.h3": "Tuning & Settings Outside the Loop",
+  "config.card1.h3": "Global Time Dilation",
+  "config.card1.body": "World time is slowed down and feels more comfortable with a <strong>global 25% dilation</strong>: <code class=\"mono\">k=0.75</code> applied via <code class=\"mono\">gravityScale</code>.",
+  "config.card2.meta": "Voice frequency",
+  "config.card2.body": "<code class=\"mono\">20s</code> of play time between each character voice line when arcade mode is active.",
+  "config.card3.h3": "Game Settings",
+  "config.card3.body": "<strong>Independent sliders</strong> for SFX / voice / music volume, a debug-overlay <strong>toggle</strong>, and <strong>EN/ES language</strong> via i18n.",
+  "config.music.h3": "Music — OST",
+  "config.card4.h3": "Background OST with Music Bus",
+  "config.card4.meta": "music volume bus",
+  "config.card4.body": "The <strong>background OST</strong> has its own <strong>music volume bus</strong> with an independent slider — the same <code class=\"mono\">ost.mp3</code> playing on this page.",
+  "compare.h2": "Before & After",
+  "compare.intro": "The contrast between the first phase and the final result: from a city of placeholder boxes to a procedural city with facades, shadows, fog, and a photographic sky.",
+  "compare.fig1": "Phase 1 — August 2026 (commit <code class=\"mono\">202c1f4</code>). The placeholder-box city from the first loop.",
+  "compare.fig2": "Final version — the same footage as the Home hero, with the game now polished.",
+  "compare.otherh3": "Other Tweaks Outside the Loop",
+  "compare.li1": "City heights raised: bins +25% and minimum height doubled twice.",
+  "compare.li2": "Logarithmic depth buffer — kills the asphalt flicker.",
+  "compare.li3": "Traffic thinned ~45%.",
+  "compare.li4": "Twisted ankles fixed in the rig.",
+  "compare.li5": "Custom procedural buildings replacing the GLB set.",
+  "compare.li6": "Wind streaks as 1px additive lines.",
+  "compare.li7": "Swingable low-rise buildings.",
+  "footer.line1": "Web Slinger · August 2026 · Opus + DeepSeek V4 Flash + GPT-5.5 · Three.js + TypeScript + Vite",
+  "page.title": "Web Slinger — Dev Log"
+};
+
+  function getLang() {
+    try { return localStorage.getItem('gauntlet-lang') || 'es'; } catch (e) { return 'es'; }
+  }
+  window.getGauntletLang = getLang;
+
+  function applyLanguage(lang) {
+    document.documentElement.lang = lang;
+
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+      var key = el.getAttribute('data-i18n');
+      if (el.dataset.i18nSrc === undefined) el.dataset.i18nSrc = el.textContent;
+      el.textContent = (lang === 'en' && EN[key] !== undefined) ? EN[key] : el.dataset.i18nSrc;
+    });
+
+    document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+      var key = el.getAttribute('data-i18n-html');
+      if (el.dataset.i18nSrc === undefined) el.dataset.i18nSrc = el.innerHTML;
+      el.innerHTML = (lang === 'en' && EN[key] !== undefined) ? EN[key] : el.dataset.i18nSrc;
+    });
+
+    document.querySelectorAll('[data-i18n-attr]').forEach(function(el) {
+      var pairs = el.getAttribute('data-i18n-attr').split(';');
+      pairs.forEach(function(pair) {
+        var idx = pair.indexOf(':');
+        if (idx === -1) return;
+        var attrName = pair.slice(0, idx);
+        var key = pair.slice(idx + 1);
+        var srcAttr = 'data-i18n-src-' + attrName;
+        if (!el.hasAttribute(srcAttr)) el.setAttribute(srcAttr, el.getAttribute(attrName) || '');
+        var srcVal = el.getAttribute(srcAttr);
+        el.setAttribute(attrName, (lang === 'en' && EN[key] !== undefined) ? EN[key] : srcVal);
+      });
+    });
+
+    document.querySelectorAll('.lang-btn').forEach(function(b) {
+      var active = b.getAttribute('data-lang') === lang;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+
+    try { localStorage.setItem('gauntlet-lang', lang); } catch (e) {}
+    document.dispatchEvent(new CustomEvent('gauntlet-lang-change', { detail: { lang: lang } }));
+  }
+  window.applyGauntletLanguage = applyLanguage;
+
+  document.querySelectorAll('.lang-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      applyLanguage(this.getAttribute('data-lang'));
+    });
+  });
+
+  applyLanguage(getLang());
+})();
+</script>
+
+<!-- ════════════════════════════════════════════ BACKGROUND OST ── AUDIO ════════════════════════════════════════════ -->
+<script>
+(function() {
+  var audio = document.getElementById('audio-ost');
+  var btn = document.getElementById('sound-toggle');
+  if (!audio || !btn) return;
+
+  var LS_KEY = 'gauntlet-ost-muted';
+  var icon = btn.querySelector('.icon');
+  var label = btn.querySelector('.label');
+  var muted = localStorage.getItem(LS_KEY) === '1';
+  var interactionHandled = false;
+
+  var SOUND_STR = {
+    es: { on: 'SONIDO ON', off: 'SONIDO OFF', ariaMute: 'Silenciar el sonido de fondo', ariaUnmute: 'Activar el sonido de fondo' },
+    en: { on: 'SOUND ON', off: 'SOUND OFF', ariaMute: 'Mute background sound', ariaUnmute: 'Unmute background sound' }
+  };
+
+  audio.muted = muted;
+  audio.pause();
+
+  function reflect() {
+    var lang = (window.getGauntletLang && window.getGauntletLang()) || 'es';
+    var s = SOUND_STR[lang] || SOUND_STR.es;
+    icon.textContent = muted ? '🔇' : '🔊';
+    label.textContent = muted ? s.off : s.on;
+    btn.classList.toggle('muted', muted);
+    btn.setAttribute('aria-pressed', muted ? 'true' : 'false');
+    btn.setAttribute('aria-label', muted ? s.ariaUnmute : s.ariaMute);
+  }
+
+  document.addEventListener('gauntlet-lang-change', reflect);
+
+  function startPlayback() {
+    var p = audio.play();
+    if (p && typeof p.catch === 'function') p.catch(function() {});
+  }
+
+  function setMuted(next) {
+    muted = next;
+    audio.muted = muted;
+    if (muted) {
+      audio.pause();
+    } else {
+      startPlayback();
+    }
+    try { localStorage.setItem(LS_KEY, muted ? '1' : '0'); } catch (e) {}
+    reflect();
+  }
+
+  reflect();
+
+  // Primera interacción del usuario en cualquier parte de la página → arranca
+  // la música (no silenciada) una sola vez. Los navegadores bloquean el
+  // autoplay sonoro, pero permiten reproducir tras un gesto del usuario.
+  function firstInteraction() {
+    if (interactionHandled) return;
+    interactionHandled = true;
+    document.removeEventListener('click', firstInteraction);
+    document.removeEventListener('keydown', firstInteraction);
+    document.removeEventListener('touchstart', firstInteraction);
+    if (!muted) startPlayback();
+  }
+  document.addEventListener('click', firstInteraction);
+  document.addEventListener('keydown', firstInteraction);
+  document.addEventListener('touchstart', firstInteraction);
+
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    setMuted(!muted);
+  });
+})();
+</script>
+</body>
+</html>
