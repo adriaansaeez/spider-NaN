@@ -23,10 +23,10 @@ const MIME: Record<string, string> = {
 
 /**
  * Dev-only mirror of the production layout: the presentation is the landing
- * page at '/', the game lives under the '/game/' base, and the media the
- * presentation links to (/captures, /docs, /reference-pack) sits at the root.
+ * page at '/', the game lives under '/game/', and the media the
+ * presentation links to (captures, docs, reference-pack) sits at the root.
  * Without this the dev server would only expose things under '/game/' and the
- * presentation's absolute paths would 404 — dev and prod would disagree.
+ * presentation's sibling media paths would 404 — dev and prod would disagree.
  */
 function presentationDevServer(): Plugin {
   return {
@@ -55,9 +55,17 @@ function presentationDevServer(): Plugin {
   };
 }
 
-export default defineConfig({
-  base: '/game/',
+export default defineConfig(({ command }) => ({
+  // Build emits RELATIVE urls: every asset reference resolves against the game
+  // document URL (…/game/), so the site works mounted at the domain root AND
+  // under any reverse-proxy prefix (https://host/prefix/game/). An absolute
+  // '/game/' base 404s the moment the deployment is not at the root.
+  //
+  // Dev keeps the absolute '/game/' base: Vite's dev server needs a real base
+  // path to serve the game and its public/ assets from, and '/' is already
+  // taken by the presentation (see presentationDevServer above).
+  base: command === 'build' ? './' : '/game/',
   plugins: [presentationDevServer()],
   server: { port: 5173, strictPort: true },
   build: { target: 'es2022', sourcemap: true },
-});
+}));

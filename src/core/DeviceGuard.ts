@@ -10,8 +10,12 @@
 import { EN, TABLES, type Lang, type StringTable } from '../i18n/strings';
 import { getLanguage, hasStoredLanguage } from '../i18n/i18n';
 
-/** Where the blocker sends the player: the presentation site at the root. */
-const PRESENTATION_URL = '/';
+/**
+ * Where the blocker sends the player: the presentation, which sits one level
+ * above the game. Relative on purpose — the deployment may be mounted under a
+ * reverse-proxy prefix, where an absolute '/' would leave the site entirely.
+ */
+const PRESENTATION_URL = '../';
 
 /**
  * The language for a screen that renders before any menu exists. The player's
