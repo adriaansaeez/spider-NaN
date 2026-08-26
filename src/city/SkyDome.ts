@@ -48,9 +48,9 @@ export interface SkyState {
   night: number;
 }
 
-const SKY_URL = `${import.meta.env.BASE_URL}assets/sky.webp`;
-const NIGHT_SKY_URL = `${import.meta.env.BASE_URL}assets/sky-night.webp`;
-const HORIZON_URL = `${import.meta.env.BASE_URL}assets/sky-horizon.webp`;
+const SKY_URL = '/assets/sky.webp';
+const NIGHT_SKY_URL = '/assets/sky-night.webp';
+const HORIZON_URL = '/assets/sky-horizon.webp';
 
 /**
  * Mean linear luminance of sky-horizon.webp, printed by

@@ -1,0 +1,54 @@
+{
+  "notes": "Edit this file to update the progress page's curated sections (systems, weaknesses, critic verdicts). The evidence sections (screenshots, clips, perf, determinism, run history) are driven only by captures/*/report.json.",
+  "systems": [
+    {
+      "id": "core",
+      "name": "Core / boot / telemetry",
+      "owner": "lead",
+      "status": "built",
+      "what": "Boots on npm run dev, RAF loop, frozen window.__GAUNTLET__ API (ready, frameCount, perf, player, playTape, reset, setPaused, setTimeOfDay, setHudVisible), perf telemetry, debug HUD."
+    },
+    {
+      "id": "city",
+      "name": "Procedural city",
+      "owner": "city-builder",
+      "status": "placeholder",
+      "what": "Seed-deterministic InstancedMesh block grid + AnchorQuery (findSwingAnchor, raycastAnchor, surfaceHeightAt, isSolidAt). Placeholder density/layout pending city-builder polish."
+    },
+    {
+      "id": "swing",
+      "name": "Traversal / swing",
+      "owner": "traversal-builder",
+      "status": "wip",
+      "what": "Fixed-step pendulum solve, web attach/release, targeted dash, dive, air control. In active development by the traversal-builder."
+    },
+    {
+      "id": "feel",
+      "name": "Camera / FX / input",
+      "owner": "feel-builder",
+      "status": "placeholder",
+      "what": "Third-person chase camera with FOV from speed, scripted tape input path, placeholder web-line + capsule FX."
+    },
+    {
+      "id": "harness",
+      "name": "Capture & evidence harness",
+      "owner": "harness-builder",
+      "status": "built",
+      "what": "tools/capture.mjs (shots, sequences, perf, determinism, tod-sweep, console gating) + tools/progress.mjs (progress page) + scripted tapes in tools/tapes/. Writes captures/<run>/report.json and captures/latest/."
+    }
+  ],
+  "weaknesses": [
+    "Headless captures render through software GL (SwiftShader): frame ms is pessimistic vs a real GPU, so perf budget verdicts lean FAIL on frame time while drawCalls/triangles are real and healthy.",
+    "Placeholder traversal physics is driven by variable frame delta: exact trajectories drift between identical runs (state sequence stays stable). Determinism verdict therefore keys on the structural + visual fingerprints of the city.",
+    "City is placeholder density (InstancedMesh grid, ~2.8k blocks): triangles are far under budget by design; visual density will come from the city-builder, not from raising poly counts.",
+    "Hot-reloads during concurrent development can interrupt a capture; the harness retries interrupted operations automatically (bounded) and reports reloads in report.json."
+  ],
+  "critics": [
+    {
+      "by": "harness",
+      "date": "2026-08-08",
+      "status": "pass",
+      "verdict": "Pipeline self-test verified: node tools/capture.mjs --all runs green from a cold shell (auto-starts a stable vite server), exits 0, and writes real PNGs, mp4/gif clips and a valid report.json. Console-error gate verified to fail a deliberately broken run (injected console.error -> exit 1, recorded in report.json). Typecheck passes."
+    }
+  ]
+}

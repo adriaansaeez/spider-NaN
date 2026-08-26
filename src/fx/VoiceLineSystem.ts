@@ -108,7 +108,7 @@ export class VoiceLineSystem {
 
     const el = new Audio();
     el.preload = 'metadata';
-    el.src = `${import.meta.env.BASE_URL}assets/audios/audio-01.mp3`;
+    el.src = '/assets/audios/audio-01.mp3';
     this.voiceSource = ctx.createMediaElementSource(el);
     this.voiceSource.connect(this.voiceGain);
     this.voiceEl = el;
@@ -164,7 +164,7 @@ export class VoiceLineSystem {
     this.lastIndex = idx;
 
     const el = this.voiceEl;
-    el.src = `${import.meta.env.BASE_URL}assets/audios/audio-0${idx + 1}.mp3`;
+    el.src = `/assets/audios/audio-0${idx + 1}.mp3`;
     this.currentKey = LINE_KEYS[idx];
     this.playing = true;
     this.onSubtitleChange?.(this.currentKey);

@@ -224,6 +224,7 @@ export class MainMenu {
       else this.backFromSettings();
     }
     else if (action === 'menu') this.exitToMenu();
+    else if (action === 'exit') { window.location.assign('presentacion/'); }
   };
 
   private readonly onInput = (e: Event): void => {
@@ -309,11 +310,14 @@ export class MainMenu {
 
     if (this.mode === 'main') {
       this.root.innerHTML = `
-        <section class="ui-panel" aria-label="${t('aria.mainMenu')}">
-          <div class="ui-title">Spider-NaN</div>
+        <section class="ui-stage" aria-label="${t('aria.mainMenu')}">
+          <h1 class="ui-title">
+            <span class="ui-title-dot" aria-hidden="true">.</span><span>Spider-</span><span class="ui-title-nan">NaN</span>
+          </h1>
           <div class="ui-actions">
-            <button type="button" data-action="play">${t('menu.play')}</button>
-            <button type="button" data-action="settings-main">${t('menu.settings')}</button>
+            ${this.actionRow('play', t('menu.play'))}
+            ${this.actionRow('settings-main', t('menu.settings'))}
+            ${this.actionRow('exit', t('menu.exit'))}
           </div>
         </section>
       `;
@@ -326,17 +330,20 @@ export class MainMenu {
         const blurbKey: StringTableKey = mode === 'arcade' ? 'mode.arcade.blurb' : 'mode.libre.blurb';
         return `
             <button type="button" data-action="mode-${mode}" class="ui-mode">
-              <span class="ui-mode-title">${t(titleKey)}</span>
+              <span class="ui-mode-head">
+                <span class="ui-mark" aria-hidden="true"></span>
+                <span class="ui-mode-title">${t(titleKey)}</span>
+              </span>
               <span class="ui-mode-blurb">${t(blurbKey)}</span>
             </button>`;
       };
       this.root.innerHTML = `
-        <section class="ui-panel" aria-label="${t('aria.chooseMode')}">
-          <div class="ui-title">${t('menu.chooseMode')}</div>
+        <section class="ui-stage" aria-label="${t('aria.chooseMode')}">
+          <h1 class="ui-screen-head">${t('menu.chooseMode')}</h1>
           <div class="ui-actions">
             ${card('arcade')}
             ${card('libre')}
-            <button type="button" data-action="back">${t('menu.back')}</button>
+            ${this.actionRow('back', t('menu.back'))}
           </div>
         </section>
       `;
@@ -345,12 +352,12 @@ export class MainMenu {
 
     if (this.mode === 'pause') {
       this.root.innerHTML = `
-        <section class="ui-panel" aria-label="${t('aria.paused')}">
-          <div class="ui-title">${t('menu.paused')}</div>
+        <section class="ui-stage" aria-label="${t('aria.paused')}">
+          <h1 class="ui-screen-head">${t('menu.paused')}</h1>
           <div class="ui-actions">
-            <button type="button" data-action="resume">${t('menu.resume')}</button>
-            <button type="button" data-action="settings-pause">${t('menu.settings')}</button>
-            <button type="button" data-action="menu">${t('menu.exitToMenu')}</button>
+            ${this.actionRow('resume', t('menu.resume'))}
+            ${this.actionRow('settings-pause', t('menu.settings'))}
+            ${this.actionRow('menu', t('menu.exitToMenu'))}
           </div>
         </section>
       `;
@@ -368,48 +375,61 @@ export class MainMenu {
     const classicOn = isClassicMode();
     const currentLang = getLanguage();
     this.root.innerHTML = `
-      <section class="ui-panel" aria-label="${t('aria.settings')}">
-        <div class="ui-title">${t('settings.title')}</div>
-        <label class="ui-setting">
-          <span>${t('settings.effectsVolume')}</span>
-          <strong data-sfx-volume-value>${volume}%</strong>
-          <input data-setting="sfx-volume" type="range" min="0" max="100" step="1" value="${volume}" />
-        </label>
-        <label class="ui-setting">
-          <span>${t('settings.musicVolume')}</span>
-          <strong data-music-volume-value>${musicVolume}%</strong>
-          <input data-setting="music-volume" type="range" min="0" max="100" step="1" value="${musicVolume}" />
-        </label>
-        <label class="ui-setting">
-          <span>${t('settings.voiceVolume')}</span>
-          <strong data-voice-volume-value>${voiceVolume}%</strong>
-          <input data-setting="voice-volume" type="range" min="0" max="100" step="1" value="${voiceVolume}" />
-        </label>
-        <label class="ui-setting">
-          <span>${t('settings.debugOverlay')}</span>
-          <input data-setting="debug-hud" type="checkbox"${debugOn ? ' checked' : ''} />
-        </label>
-        <label class="ui-setting">
-          <span>${t('settings.classicMode')}</span>
-          <input data-setting="classic-mode" type="checkbox"${classicOn ? ' checked' : ''} />
-        </label>
-        <div style="font-size: 12px; color: #93a4b6; margin: -10px 0 14px; line-height: 1.4;">
-          ${t('settings.classicModeHint')}
-        </div>
-        <label class="ui-setting">
-          <span>${t('settings.language')}</span>
-          <select data-setting="language">
-            <option value="en"${currentLang === 'en' ? ' selected' : ''}>English</option>
-            <option value="es"${currentLang === 'es' ? ' selected' : ''}>Español</option>
-          </select>
-        </label>
-        <div style="font-size: 12px; color: #93a4b6; margin-bottom: 18px; line-height: 1.4;">
-          ${t('settings.voicesSpanishOnly')}
-        </div>
-        <div class="ui-actions">
-          <button type="button" data-action="back">${t('menu.back')}</button>
+      <section class="ui-stage" aria-label="${t('aria.settings')}">
+        <div class="ui-panel">
+          <h1 class="ui-screen-head">${t('settings.title')}</h1>
+          <div class="ui-fields">
+            <label class="ui-setting">
+              <span class="ui-setting-label">${t('settings.effectsVolume')}</span>
+              <output class="ui-setting-value" data-sfx-volume-value>${volume}%</output>
+              <input data-setting="sfx-volume" type="range" min="0" max="100" step="1" value="${volume}" />
+            </label>
+            <label class="ui-setting">
+              <span class="ui-setting-label">${t('settings.musicVolume')}</span>
+              <output class="ui-setting-value" data-music-volume-value>${musicVolume}%</output>
+              <input data-setting="music-volume" type="range" min="0" max="100" step="1" value="${musicVolume}" />
+            </label>
+            <label class="ui-setting">
+              <span class="ui-setting-label">${t('settings.voiceVolume')}</span>
+              <output class="ui-setting-value" data-voice-volume-value>${voiceVolume}%</output>
+              <input data-setting="voice-volume" type="range" min="0" max="100" step="1" value="${voiceVolume}" />
+            </label>
+            <label class="ui-setting">
+              <span class="ui-setting-label">${t('settings.debugOverlay')}</span>
+              <input data-setting="debug-hud" type="checkbox"${debugOn ? ' checked' : ''} />
+            </label>
+            <label class="ui-setting">
+              <span class="ui-setting-label">${t('settings.classicMode')}</span>
+              <input data-setting="classic-mode" type="checkbox"${classicOn ? ' checked' : ''} />
+            </label>
+            <p class="ui-hint">${t('settings.classicModeHint')}</p>
+            <label class="ui-setting">
+              <span class="ui-setting-label">${t('settings.language')}</span>
+              <span class="ui-select-wrap">
+                <select data-setting="language">
+                  <option value="en"${currentLang === 'en' ? ' selected' : ''}>English</option>
+                  <option value="es"${currentLang === 'es' ? ' selected' : ''}>Español</option>
+                </select>
+                <span class="ui-select-arrow" aria-hidden="true"></span>
+              </span>
+            </label>
+            <p class="ui-hint">${t('settings.voicesSpanishOnly')}</p>
+          </div>
+          <div class="ui-actions">
+            ${this.actionRow('back', t('menu.back'))}
+          </div>
         </div>
       </section>
     `;
+  }
+
+  /** One menu row. The red mark is always in the flow (nothing shifts when it
+   *  appears); it only lights up on hover/focus. */
+  private actionRow(action: string, label: string): string {
+    return `
+      <button type="button" class="ui-action" data-action="${action}">
+        <span class="ui-mark" aria-hidden="true"></span>
+        <span class="ui-action-label">${label}</span>
+      </button>`;
   }
 }

@@ -17,19 +17,6 @@ function readStoredLang(): Lang {
   return 'en';
 }
 
-/**
- * Whether the player has ever picked a language here. Callers that render
- * before the menu exists (the device blocker) use this to fall back to the
- * browser locale instead of silently showing English to a Spanish visitor.
- */
-export function hasStoredLanguage(): boolean {
-  try {
-    return localStorage.getItem(STORAGE_KEY) !== null;
-  } catch {
-    return false;
-  }
-}
-
 /** Get the current UI language. */
 export function getLanguage(): Lang {
   return currentLang;

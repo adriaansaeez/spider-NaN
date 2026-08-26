@@ -64,6 +64,8 @@ export class FxSystem implements System {
   private modelLoadMs = 0;
   /** Set by `__GAUNTLET__.triggerGroundPull()`; consumed on the next frame. */
   private pullRequest = false;
+  /** See `setAmbientOnly`: pose + travelling lights only, for the title screen. */
+  private ambientOnly = false;
   private debugApiAttached = false;
   /**
    * Visual-only state override for `__GAUNTLET__.setCharacterPoseState`. The
@@ -414,6 +416,27 @@ export class FxSystem implements System {
     };
   }
 
+  /**
+   * AMBIENT-ONLY mode — the title-screen backdrop (src/ui/MenuBackdrop.ts).
+   *
+   * The backdrop keeps the world simulating behind the main menu, and it wants
+   * exactly two things out of this system: the hero POSED (so he breathes and
+   * shifts his weight instead of standing there as a mannequin) and the lights
+   * that travel with him. Everything else here belongs to a live RUN — the
+   * speed streaks, the wind synth, the control-teaching strip, the web strands —
+   * and running any of it on a menu is either noise or, in the strip's case, an
+   * actual regression: it would spend its whole lifetime retiring off screen.
+   *
+   * This is a VIEW switch only. It changes nothing the rig or gameplay reads.
+   */
+  setAmbientOnly(on: boolean): void {
+    if (this.ambientOnly === on) return;
+    this.ambientOnly = on;
+    this.prompt.setSuspended(on);
+    // The overlay is speed-driven and the menu hero stands still, so it is
+    // already at zero; simply not ticking it is enough.
+  }
+
   update(ctx: UpdateContext): void {
     const p = this.player;
     const dt = ctx.dt;
@@ -425,11 +448,13 @@ export class FxSystem implements System {
 
     if (!this.debugApiAttached) this.syncFxDebugApi();
     this.rig.update(this.posedSnapshot(p), dt, groundPull);
+    this.updateNavigationLight();
+    this.updateStreetSkimLight(p);
+    if (this.ambientOnly) return;
+
     this.overlay.update(p, dt);
     this.audio.update(p, dt);
     this.prompt.update(dt);
-    this.updateNavigationLight();
-    this.updateStreetSkimLight(p);
 
     this.updateWeb(p, dt);
     this.updatePullWebs(p, dt, groundPull);

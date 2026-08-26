@@ -42,6 +42,14 @@ export class ControlPrompt {
   private age = 0;
   private retired = false;
   private lastHidden: boolean | null = null;
+  /**
+   * Suspended = off screen and off the clock. The title-screen backdrop
+   * (src/ui/MenuBackdrop.ts) renders the live world behind the menu, so this
+   * strip would otherwise teach controls over a menu that has none — and, worse,
+   * burn its whole LIFETIME sitting there, so a player who read the menu for a
+   * minute would start their first run with no prompt at all.
+   */
+  private suspended = false;
 
   constructor() {
     this.root.id = 'control-prompt';
@@ -100,8 +108,19 @@ export class ControlPrompt {
     requestAnimationFrame(() => { if (!this.retired) this.root.style.opacity = '1'; });
   }
 
+  /** Hide the strip and stop its clock while the title screen owns the frame. */
+  setSuspended(on: boolean): void {
+    if (this.suspended === on) return;
+    this.suspended = on;
+    if (on) this.root.style.display = 'none';
+    // Un-suspending hands visibility straight back to `update`, which re-reads
+    // the debug-HUD mirror below; forcing it to re-evaluate is what `lastHidden`
+    // being cleared here buys.
+    else this.lastHidden = null;
+  }
+
   update(dt: number): void {
-    if (this.retired) return;
+    if (this.retired || this.suspended) return;
 
     // mirror the debug HUD's visibility so critic captures stay clean
     const hud = document.getElementById('hud');

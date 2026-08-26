@@ -18,20 +18,14 @@
  */
 export const SWING_TUNING = {
   // --- spawn ----------------------------------------------------------------
-  /** Spawn point sits over the guaranteed building-free plaza at the downtown
-   *  core, at CRUISE altitude and CRUISE speed — not at the top of the world.
-   *  INTEGRATION_WAVE1 blocker 5: the old (0, 240) spawn was a 4.2 s
-   *  non-interactive 237 m free-fall in which the first web presses silently
-   *  failed because no anchor is in range at 237 m. The player now starts
-   *  inside the band where an immediate first attach is legal. */
-  spawnPosition: { x: 44, y: 58, z: 46 },
-  /** Clearance above the surface we force at spawn, metres. Guarantees we are
-   *  never inside a building whatever the city layout does. */
-  spawnClearance: 34,
-  /** Initial velocity, m/s. Already at cruise, gently descending, so the first
-   *  auto-attach fires within a couple of hundred milliseconds.
-   *  Dilated x0.75: (0, -3, -39). */
-  spawnVelocity: { x: 0, y: -3, z: -39 },
+  /** Spawn point sits inside the guaranteed building-free grass plaza at the
+   *  downtown core. A fresh run now starts STANDING on the ground, not
+   *  airborne: the hero begins on the street grass, ready for the first web
+   *  press or a jump. Height comes from the surface query (surface + stand
+   *  height) and initial velocity is zero, so a changing city layout can never
+   *  trap the player inside a building — the plaza guarantees open ground under
+   *  (44, 46). */
+  spawnPoint: { x: 44, z: 46 },
 
   // --- web / anchor ---------------------------------------------------------
   /** Max web reach / anchor query distance, metres. A CRUISING swing lives at

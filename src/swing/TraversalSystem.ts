@@ -84,10 +84,10 @@ export interface GroundPullProbeResult {
  */
 export class TraversalSystem implements System {
   readonly snapshot: PlayerSnapshot = {
-    position: new THREE.Vector3(T.spawnPosition.x, T.spawnPosition.y, T.spawnPosition.z),
-    velocity: new THREE.Vector3(T.spawnVelocity.x, T.spawnVelocity.y, T.spawnVelocity.z),
+    position: new THREE.Vector3(T.spawnPoint.x, 0, T.spawnPoint.z),
+    velocity: new THREE.Vector3(0, 0, 0),
     speed: 0,
-    state: 'AIRBORNE',
+    state: 'LANDED',
     stateTime: 0,
     anchorPosition: null,
     ropeLength: 0,
@@ -1612,24 +1612,24 @@ export class TraversalSystem implements System {
     this.lastSubsteps = 0;
     this.droppedTime = 0;
     this.droppedSteps = 0;
-    this.setState('AIRBORNE');
+    this.setState('LANDED');
     this.syncTraversalDebugApi();
   }
 
-  /** Place the player safely above the local surface at the spawn point, at
-   *  cruise altitude and cruise speed, so the very first web press has a legal
-   *  anchor and succeeds — no 4.2 s non-interactive free-fall, no silent
-   *  first-press failure (INTEGRATION_WAVE1 blocker 5). Height is computed from
-   *  the world query so a changing city layout cannot trap the player inside a
-   *  building. */
+  /** Place the player STANDING on the local surface at the spawn point — the
+   *  run starts on the street grass, ready for the first web press or a jump,
+   *  rather than airborne at cruise altitude. Height comes from the world query
+   *  (surface + stand height) so a changing city layout cannot trap the player
+   *  inside a building, and initial velocity is zero. Getting up into the air
+   *  is the job of the ground-pull / jump path, not of the spawn. */
   private spawn() {
     const s = this.snapshot;
-    const x = T.spawnPosition.x;
-    const z = T.spawnPosition.z;
+    const x = T.spawnPoint.x;
+    const z = T.spawnPoint.z;
     const top = this.world.surfaceHeightAt(x, z);
-    const y = Math.max(T.spawnPosition.y, top + T.spawnClearance);
+    const y = top + T.standHeight;
     s.position.set(x, y, z);
-    s.velocity.set(T.spawnVelocity.x, T.spawnVelocity.y, T.spawnVelocity.z);
+    s.velocity.set(0, 0, 0);
   }
 
   /**

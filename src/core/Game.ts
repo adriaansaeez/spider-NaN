@@ -13,6 +13,7 @@ import { FxSystem } from '../fx/FxSystem';
 import { AudioSystem } from '../fx/AudioSystem';
 import { InputSystem } from '../input/InputSystem';
 import { MainMenu, type GameMode } from '../ui/MainMenu';
+import { MenuBackdrop } from '../ui/MenuBackdrop';
 import { Subtitles } from '../ui/Subtitles';
 import { ScoreSystem, type ScoreReport } from '../score/ScoreSystem';
 import { setLanguage } from '../i18n/i18n';
@@ -32,6 +33,8 @@ export class Game {
   private score: ScoreSystem;
   private subtitles: Subtitles;
   private menu: MainMenu | null = null;
+  /** The title-screen shot. Owns nothing; see ui/MenuBackdrop.ts. */
+  private backdrop: MenuBackdrop | null = null;
   private systems: System[];
 
   private last = performance.now();
@@ -110,6 +113,18 @@ export class Game {
       // drives — one flag, three entry points.
       setClassicMode: (on) => { setClassicMode(on); },
     });
+    // After the menu, because the backdrop reads `#game-ui[data-mode]` — which
+    // only exists once MainMenu has rendered its opening screen.
+    this.backdrop = new MenuBackdrop({
+      ambient: [this.city, this.dayNight, this.fx],
+      player: this.traversal.snapshot,
+      surfaceHeightAt: (x, z) => this.city.surfaceHeightAt(x, z),
+      dayNight: this.dayNight,
+      placePlayer: (x, y, z, freeze) => this.setPlayerPosition(x, y, z, freeze),
+      unfreezePlayer: () => this.setPlayerFrozen(false),
+      setFreeCamera: (pose) => this.setFreeCamera(pose),
+      setFxAmbientOnly: (on) => this.fx.setAmbientOnly(on),
+    });
     this.loop();
   }
 
@@ -120,7 +135,16 @@ export class Game {
     this.last = now;
     this.telemetry.sample(rawDt * 1000);
 
-    if (!this.paused) {
+    if (this.paused) {
+      // THE TITLE SCREEN IS NOT A FROZEN GAME. While the backdrop is armed the
+      // world keeps simulating on its own clock — the run's `elapsed` and
+      // `frame` must not advance for however long someone reads a menu — and the
+      // locked lens goes through the SAME free-camera path a critic uses.
+      if (this.backdrop?.isActive()) {
+        this.backdrop.update(rawDt);
+        if (this.freeCamPose) this.applyFreeCamera();
+      }
+    } else {
       // `fixedDelta` (see setFixedDelta) replaces wall-clock dt for EVERY system,
       // including the input tape's own clock, so a replay is frame-exact rather
       // than merely drift-free. Null = normal wall-clock play.
@@ -311,6 +335,7 @@ export class Game {
 
   dispose() {
     cancelAnimationFrame(this.raf);
+    this.backdrop?.dispose();
     this.menu?.dispose();
     this.subtitles.dispose();
     for (const s of this.systems) s.dispose?.();

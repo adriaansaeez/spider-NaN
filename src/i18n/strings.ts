@@ -9,7 +9,7 @@
  * `t()` into the call sites, and neither has to wait for the other.
  *
  * DELIBERATELY NOT TRANSLATED, do not add keys for these:
- *  - "Spider-NaN" — the game's name, a product name in both languages.
+ *  - ".Spider-NaN" — the game's name, a product name in both languages.
  *  - MOUSE / W A S D / SPACE — physical key names, identical in both.
  *  - Nothing else. NOTE: the voice-line subtitles WERE excluded here on the
  *    grounds that they must match Spanish speech; the owner overruled that, and
@@ -30,6 +30,7 @@ export interface StringTable {
   'menu.paused': string;
   'menu.resume': string;
   'menu.exitToMenu': string;
+  'menu.exit': string;
 
   'mode.arcade.title': string;
   'mode.arcade.blurb': string;
@@ -90,17 +91,6 @@ export interface StringTable {
   'prompt.web': string;
   'prompt.dash': string;
   'prompt.launch': string;
-
-  /**
-   * Device blocker. Shown INSTEAD of the game — the guard runs before the
-   * engine is imported — when the device has no mouse/keyboard, or when the
-   * browser cannot give us a WebGL context at all.
-   */
-  'blocked.heading': string;
-  'blocked.body': string;
-  'blocked.webglHeading': string;
-  'blocked.webglBody': string;
-  'blocked.back': string;
 }
 
 /** English is the source of truth: these are the exact strings shipping today. */
@@ -112,6 +102,7 @@ export const EN: StringTable = {
   'menu.paused': 'Paused',
   'menu.resume': 'Resume',
   'menu.exitToMenu': 'Exit to Menu',
+  'menu.exit': 'Exit',
 
   'mode.arcade.title': 'Arcade Mode',
   'mode.arcade.blurb': 'Score your swings, air time, and flips with a multiplier and best run.',
@@ -158,12 +149,6 @@ export const EN: StringTable = {
   'prompt.web': 'WEB',
   'prompt.dash': 'DASH',
   'prompt.launch': 'LAUNCH',
-
-  'blocked.heading': 'Keyboard and mouse required',
-  'blocked.body': 'Spider-NaN is played with the mouse and WASD, using pointer lock — there are no touch controls, so it will not run on a phone or a tablet. Open it on a desktop or laptop computer.',
-  'blocked.webglHeading': 'WebGL not available',
-  'blocked.webglBody': 'This browser cannot open a WebGL context, which the game needs to render the city. Try a recent desktop browser with hardware acceleration enabled.',
-  'blocked.back': 'Back to the presentation',
 };
 
 /** TRANSLATION BUILDER OWNS THIS OBJECT. Every value is '' until translated;
@@ -176,6 +161,7 @@ export const ES: StringTable = {
   'menu.paused': 'Pausa',
   'menu.resume': 'Reanudar',
   'menu.exitToMenu': 'Salir al Menú',
+  'menu.exit': 'Salir',
 
   'mode.arcade.title': 'Modo Arcade',
   'mode.arcade.blurb': 'Puntúa tus swings, el tiempo en el aire y los flips: multiplicador y mejor marca.',
@@ -222,12 +208,6 @@ export const ES: StringTable = {
   'prompt.web': 'WEB',
   'prompt.dash': 'DASH',
   'prompt.launch': 'LANZAR',
-
-  'blocked.heading': 'Necesitas teclado y ratón',
-  'blocked.body': 'Spider-NaN se juega con el ratón y WASD, con el puntero capturado — no hay controles táctiles, así que no funciona en un móvil ni en una tablet. Ábrelo en un ordenador de escritorio o portátil.',
-  'blocked.webglHeading': 'WebGL no disponible',
-  'blocked.webglBody': 'Este navegador no puede abrir un contexto WebGL, que es lo que el juego necesita para dibujar la ciudad. Prueba con un navegador de escritorio reciente y la aceleración por hardware activada.',
-  'blocked.back': 'Volver a la presentación',
 };
 
 export const TABLES: Record<Lang, StringTable> = { en: EN, es: ES };

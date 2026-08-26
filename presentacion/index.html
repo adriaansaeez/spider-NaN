@@ -3,817 +3,807 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title data-i18n="page.title">Spider-NaN — Diario de Bitácora</title>
+<title data-i18n="page.title">.Spider-NaN — Diarios de Desarrollo</title>
 <style>
-  :root {
-    --bg: #0b0e13;
-    --bg2: #0f1318;
-    --panel: #151a22;
-    --panel2: #1a2029;
-    --line: #232b37;
-    --tx: #d8e2ec;
-    --dim: #7d8a99;
-    --ok: #34d399;
-    --fail: #ff6b6b;
-    --accent: #7aa2ff;
-    --accent2: #b08aff;
-    --gold: #e2b93b;
-    --glow: rgba(122,162,255,0.08);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--bg);
-    color: var(--tx);
-    font: 15px/1.6 system-ui, -apple-system, 'Segoe UI', sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
-  code, .mono, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-  a { color: var(--accent); text-decoration: none; }
-  a:hover { text-decoration: underline; }
+/* ═══════════════════════════════════════════════════════════════════════════
+   .SPIDER-NaN — DIARIOS DE DESARROLLO
+   Sistema visual: "el cuaderno del crítico".
 
-  /* ── NAV ── */
-  nav {
-    position: sticky; top: 0; z-index: 100;
-    background: rgba(11,14,19,0.92);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--line);
-    padding: 0 24px;
-    display: flex; align-items: center; gap: 24px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  nav::-webkit-scrollbar { display: none; }
-  nav .brand { font-weight: 700; font-size: 14px; letter-spacing: .04em; white-space: nowrap; padding: 12px 0; color: var(--accent); }
-  nav .nav-links { display: flex; gap: 24px; overflow-x: auto; scrollbar-width: none; }
-  nav .nav-links::-webkit-scrollbar { display: none; }
-  nav a { font-size: 12px; color: var(--dim); white-space: nowrap; padding: 12px 0; border-bottom: 2px solid transparent; transition: color .2s, border-color .2s; }
-  nav a:hover, nav a.active { color: var(--tx); border-bottom-color: var(--accent); text-decoration: none; }
+   Papel blanco, tinta negra. Dos tintas de color, cada una con UN significado
+   y nada más:
+     ROJO  = el crítico. Lo que el critic marcó: FAIL, sus veredictos citados,
+             sus anotaciones al margen, el acento de la marca.
+     AZUL  = la medida. Lo verificado: PASS, métricas, budgets, determinismo.
+   No hay verde, ni oro, ni violeta. Si algo no es crítica ni medida, es negro.
 
-  /* ── HERO ── */
-  .hero {
-    position: relative;
-    min-height: 80vh;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center;
-    padding: 80px 24px 60px;
-    overflow: hidden;
-  }
-  .hero::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(122,162,255,0.10), transparent 70%),
-                radial-gradient(ellipse 60% 40% at 30% 70%, rgba(176,138,255,0.06), transparent 60%);
-    pointer-events: none;
-  }
-  .hero-tag {
-    font: 600 11px/1 ui-monospace, SFMono-Regular, monospace;
-    letter-spacing: .14em; text-transform: uppercase;
-    color: var(--accent); margin-bottom: 16px;
-    padding: 4px 12px; border: 1px solid rgba(122,162,255,0.3); border-radius: 4px;
-    background: rgba(122,162,255,0.06);
-    animation: fadeDown .6s ease-out both;
-  }
-  .hero h1 {
-    font-size: clamp(48px, 10vw, 96px);
-    font-weight: 800;
-    letter-spacing: -.03em;
-    line-height: 1;
-    margin-bottom: 12px;
-    animation: fadeDown .6s .1s ease-out both;
-  }
-  .hero h1 span { color: var(--accent); }
-  .hero .subtitle {
-    font-size: clamp(16px, 2.5vw, 22px);
-    color: var(--dim);
-    max-width: 640px;
-    margin-bottom: 32px;
-    animation: fadeDown .6s .2s ease-out both;
-  }
-  .hero-meta {
-    display: flex; gap: 32px; flex-wrap: wrap; justify-content: center;
-    font-size: 13px; color: var(--dim);
-    animation: fadeDown .6s .3s ease-out both;
-  }
-  .hero-meta strong { color: var(--tx); font-weight: 600; }
-  .hero-badges {
-    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 24px;
-    animation: fadeDown .6s .4s ease-out both;
-  }
-  .badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;
-    letter-spacing: .04em;
-  }
-  .badge.ok { background: #0f2b24; color: var(--ok); border: 1px solid #1d5c4b; }
-  .badge.info { background: #0f1f33; color: var(--accent); border: 1px solid #1d3d6b; }
-  .badge.warn { background: #2b240f; color: var(--gold); border: 1px solid #6b5c1d; }
+   Las REGLAS llevan el veredicto: el filete superior de una ficha toma el color
+   de su resultado. El color informa; no decora.
 
-  /* ── HERO SOUND TOGGLE ── */
-  .hero-sound-btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    margin-top: 16px;
-    padding: 8px 16px;
-    border: 1px solid rgba(122,162,255,0.3);
-    border-radius: 4px;
-    background: rgba(122,162,255,0.06);
-    color: var(--accent);
-    font: 600 11px/1 ui-monospace, SFMono-Regular, monospace;
-    letter-spacing: .14em; text-transform: uppercase;
-    cursor: pointer;
-    transition: border-color .2s, background .2s, color .2s, box-shadow .2s;
-    animation: fadeDown .6s .5s ease-out both;
-  }
-  .hero-sound-btn:hover {
-    border-color: var(--accent);
-    background: rgba(122,162,255,0.14);
-    box-shadow: 0 0 20px rgba(122,162,255,0.12);
-  }
-  .hero-sound-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .hero-sound-btn.muted { color: var(--dim); border-color: var(--line); background: rgba(23,30,40,0.4); }
+   Tipografía: Technor (display/UI, self-hosted), system-ui (prosa larga),
+   Tabular (cifras, tablas, hashes, código — sólo datos reales).
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-  /* ── HERO PLAY CTA (Primary action) ── */
-  .hero-play-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 32px;
-    padding: 16px 42px;
-    border: none;
-    border-radius: 6px;
-    background: var(--accent);
-    color: #0b0e13;
-    font: 700 18px/1 system-ui, -apple-system, 'Segoe UI', sans-serif;
-    letter-spacing: .06em;
-    text-decoration: none;
-    box-shadow: 0 0 0 1px rgba(122,162,255,0.45), 0 8px 30px rgba(122,162,255,0.28);
-    transition: transform .2s, box-shadow .2s, background .2s;
-    animation: fadeDown .6s .45s ease-out both;
-    cursor: pointer;
-  }
-  .hero-play-btn:hover {
-    background: #8fb2ff;
-    box-shadow: 0 0 42px rgba(122,162,255,0.55), 0 12px 40px rgba(122,162,255,0.38);
-    transform: translateY(-2px);
-    text-decoration: none;
-  }
-  .hero-play-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-  .hero-play-btn .arrow { font-size: 22px; line-height: 1; }
+@font-face { font-family: 'Technor'; src: url('assets/fonts/technor-400.woff2') format('woff2'); font-weight: 400; font-display: swap; font-style: normal; }
+@font-face { font-family: 'Technor'; src: url('assets/fonts/technor-500.woff2') format('woff2'); font-weight: 500; font-display: swap; font-style: normal; }
+@font-face { font-family: 'Technor'; src: url('assets/fonts/technor-700.woff2') format('woff2'); font-weight: 700; font-display: swap; font-style: normal; }
+@font-face { font-family: 'Tabular'; src: url('assets/fonts/tabular-400.woff2') format('woff2'); font-weight: 400; font-display: swap; font-style: normal; }
+@font-face { font-family: 'Tabular'; src: url('assets/fonts/tabular-500.woff2') format('woff2'); font-weight: 500; font-display: swap; font-style: normal; }
+@font-face { font-family: 'Tabular'; src: url('assets/fonts/tabular-700.woff2') format('woff2'); font-weight: 700; font-display: swap; font-style: normal; }
 
-  /* ── DESKTOP-ONLY ──
-     The game takes pointer lock and moves with WASD, so it cannot be played on
-     a touch device. The badge is always visible (it is useful to know before
-     clicking); the note and the disabled state only appear where the device
-     actually cannot play, keyed off html.is-touch-device. */
-  .desktop-only-tag {
-    display: inline-flex; align-items: center;
-    padding: 3px 8px; border-radius: 4px;
-    font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
-    letter-spacing: .06em; text-transform: uppercase; white-space: nowrap;
-    background: rgba(11,14,19,0.18); color: #0b0e13; border: 1px solid rgba(11,14,19,0.28);
-  }
-  .cta-card .desktop-only-tag {
-    background: #2b240f; color: var(--gold); border-color: #6b5c1d;
-  }
-  .touch-note {
-    display: none; margin-top: 12px; max-width: 34em;
-    font-size: 13px; line-height: 1.5; color: var(--gold);
-  }
-  html.is-touch-device .touch-note { display: block; }
-  html.is-touch-device .hero-play-btn,
-  html.is-touch-device .cta-card.primary { cursor: not-allowed; }
-  html.is-touch-device .hero-play-btn {
-    background: var(--panel2); color: var(--dim);
-    box-shadow: 0 0 0 1px var(--line);
-  }
-  html.is-touch-device .hero-play-btn .desktop-only-tag {
-    background: transparent; color: var(--gold); border-color: #6b5c1d;
-  }
-  html.is-touch-device .hero-play-btn:hover {
-    background: var(--panel2); box-shadow: 0 0 0 1px var(--line); transform: none;
-  }
-  html.is-touch-device .cta-card.primary { opacity: .62; }
-  html.is-touch-device .cta-card.primary:hover { transform: none; }
-  .desktop-note { margin-top: 14px; font-size: 13px; color: var(--dim); }
+:root {
+  color-scheme: light;
 
-  .scroll-hint {
-    position: absolute; bottom: 24px;
-    animation: bounce 2s infinite;
-    color: var(--dim); font-size: 20px;
-    z-index: 2;
-  }
+  --paper:      #ffffff;
+  --paper-warm: #faf9f6;
+  --ink:        #101010;
+  --ink-2:      #3c3c3c;
+  --ink-3:      #6c6c6c;   /* 4.9:1 sobre blanco */
+  --rule:       #e3e1dc;
+  --rule-mid:   #c6c3bc;
 
-  /* ── HERO VIDEO BACKGROUND ── */
-  .hero .hero-video {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    min-width: 100%; min-height: 100%;
-    object-fit: cover;
-    z-index: 0;
-  }
-  .hero .hero-overlay {
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(11,14,19,0.78) 0%, rgba(11,14,19,0.45) 45%, rgba(11,14,19,0.88) 100%);
-    z-index: 1;
-    pointer-events: none;
-  }
-  .hero .hero-content {
-    position: relative;
-    z-index: 2;
-    display: flex; flex-direction: column; align-items: center;
-    width: 100%;
-  }
+  --red:        #cc2018;   /* 5.5:1 sobre blanco */
+  --red-deep:   #93130d;
+  --red-wash:   #fdf1f0;
+  --blue:       #14459e;   /* 9.4:1 sobre blanco */
+  --blue-deep:  #0c2c69;
+  --blue-wash:  #eff3fb;
 
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(8px); }
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  --f-display: 'Technor', system-ui, -apple-system, sans-serif;
+  --f-text:    system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --f-data:    'Tabular', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* ── SECTIONS ── */
-  main { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+  --nav-h: 54px;
+  --gutter: clamp(20px, 5vw, 56px);
+  --col:    min(1180px, 100%);
+  --ease:   cubic-bezier(.16, 1, .3, 1);
+}
 
-  section {
-    margin-bottom: 72px;
-    animation: fadeIn .5s ease-out both;
-  }
-  section:nth-child(2) { animation-delay: .05s; }
-  section:nth-child(3) { animation-delay: .1s; }
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 70px; -webkit-text-size-adjust: 100%; }
 
-  .section-label {
-    font: 600 11px/1 ui-monospace, SFMono-Regular, monospace;
-    letter-spacing: .14em; text-transform: uppercase;
-    color: var(--accent); margin-bottom: 8px;
-  }
-  h2 {
-    font-size: 28px; font-weight: 700; letter-spacing: -.02em;
-    margin-bottom: 16px;
-  }
-  h3 {
-    font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--tx);
-  }
-  p { color: var(--dim); margin-bottom: 12px; }
-  p strong { color: var(--tx); }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-text);
+  font-size: 16.5px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
 
-  /* ── CARDS ── */
-  .card {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 20px 24px;
-    margin-bottom: 12px;
-  }
-  .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 12px;
-  }
-  .card h3 { font-size: 15px; margin-bottom: 6px; }
-  .card .meta { font-size: 12px; color: var(--dim); margin-bottom: 8px; }
+/* ── Superficies del navegador: también son parte del diseño ── */
+::selection { background: var(--red); color: #fff; }
+:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; border-radius: 1px; }
+* { scrollbar-width: thin; scrollbar-color: var(--rule-mid) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--rule-mid); border: 3px solid var(--paper); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
 
-  /* ── CTA CARDS (INICIO TAB) ── */
-  .cta-stack {
-    display: grid;
-    gap: 12px;
-  }
-  .cta-card {
-    width: 100%;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px;
-    text-align: left;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 20px 24px;
-    cursor: pointer;
-    font: inherit;
-    color: inherit;
-    transition: border-color .2s, box-shadow .2s, transform .2s;
-  }
-  .cta-card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 0 20px rgba(122,162,255,0.08);
-    transform: translateY(-2px);
-  }
-  .cta-card h3 { font-size: 15px; margin-bottom: 6px; color: var(--tx); }
-  .cta-card .meta { font-size: 13px; color: var(--dim); margin: 0; }
-  .cta-card .arrow { color: var(--accent); font-size: 20px; flex-shrink: 0; }
+code, .mono, pre { font-family: var(--f-data); font-size: .9em; font-weight: 500; letter-spacing: -.01em; }
+code { color: var(--ink-2); }
 
-  /* ── CTA CARD PRIMARY (Inicio: Jugar) ── */
-  .cta-card.primary {
-    border-color: rgba(122,162,255,0.55);
-    background: linear-gradient(180deg, rgba(122,162,255,0.10), rgba(122,162,255,0.04));
-    box-shadow: 0 0 0 1px rgba(122,162,255,0.15), 0 0 24px rgba(122,162,255,0.10);
-  }
-  .cta-card.primary:hover {
-    border-color: var(--accent);
-    box-shadow: 0 0 32px rgba(122,162,255,0.28);
-    transform: translateY(-2px);
-  }
-  .cta-card.primary h3 { color: var(--accent); }
+a { color: var(--ink); text-decoration-color: var(--rule-mid); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a:hover { color: var(--red); text-decoration-color: var(--red); }
 
-  /* ── PROMPT BLOCK ── */
-  .prompt-block {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 24px;
-    position: relative;
-    overflow: hidden;
-  }
-  .prompt-block::before {
-    content: attr(data-label);
-    position: absolute; top: 0; left: 0; right: 0;
-    background: var(--panel2);
-    border-bottom: 1px solid var(--line);
-    padding: 6px 16px;
-    font: 600 10px/1 ui-monospace, SFMono-Regular, monospace;
-    letter-spacing: .12em; color: var(--dim);
-  }
-  .prompt-text {
-    margin-top: 32px;
-    font: 14px/1.8 ui-monospace, SFMono-Regular, monospace;
-    color: var(--tx);
-    white-space: pre-wrap;
-  }
-  .prompt-text .hl { color: var(--accent); font-weight: 600; }
-  .prompt-annotation {
-    display: block;
-    margin: 4px 0 12px;
-    padding: 8px 12px;
-    background: rgba(122,162,255,0.06);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 4px 4px 0;
-    font: 12px/1.5 system-ui, sans-serif;
-    color: var(--dim);
-  }
+img, video { max-width: 100%; }
+strong, b { font-weight: 600; color: var(--ink); }
+em { font-style: italic; }
 
-  /* ── ARCHITECTURE DIAGRAM ── */
-  .arch-diagram {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 32px 24px;
-    overflow-x: auto;
-  }
-  .arch-flow {
-    display: flex;
-    align-items: flex-start;
-    gap: 0;
-    min-width: 800px;
-    justify-content: center;
-    flex-wrap: nowrap;
-  }
-  .arch-node {
-    text-align: center;
-    min-width: 100px;
-    flex-shrink: 0;
-  }
-  .arch-node .icon {
-    width: 56px; height: 56px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 8px;
-    font-size: 24px;
-  }
-  .arch-node .label { font-size: 11px; font-weight: 600; color: var(--tx); }
-  .arch-node .sub { font-size: 10px; color: var(--dim); margin-top: 2px; }
-  .arch-arrow {
-    display: flex; align-items: center; justify-content: center;
-    color: var(--dim); font-size: 20px; padding-top: 16px;
-    min-width: 32px; flex-shrink: 0;
-  }
-  .icon-human { background: rgba(226,185,59,0.15); border: 1px solid rgba(226,185,59,0.3); }
-  .icon-prompt { background: rgba(122,162,255,0.15); border: 1px solid rgba(122,162,255,0.3); }
-  .icon-build { background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.3); }
-  .icon-critic { background: rgba(255,107,107,0.15); border: 1px solid rgba(255,107,107,0.3); }
-  .icon-evidence { background: rgba(176,138,255,0.15); border: 1px solid rgba(176,138,255,0.3); }
+/* ═══════════════════════ NAV ═══════════════════════ */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border-bottom: 1px solid var(--rule);
+  padding: 0 var(--gutter);
+  display: flex; align-items: center; gap: clamp(16px, 3vw, 40px);
+}
+nav .brand {
+  font-family: var(--f-display); font-weight: 700; font-size: 15px;
+  letter-spacing: -.02em; white-space: nowrap; padding: 14px 0; color: var(--ink);
+  flex-shrink: 0;
+}
+nav .brand::after {
+  content: ''; display: inline-block; width: 5px; height: 5px;
+  background: var(--red); margin-left: 7px; vertical-align: 3px;
+}
 
-  .agents-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 10px;
-    margin-top: 20px;
-  }
-  .agent-card {
-    background: var(--bg2);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 14px;
-    text-align: center;
-  }
-  .agent-card .name { font-size: 13px; font-weight: 700; color: var(--accent); }
-  .agent-card .role { font-size: 11px; color: var(--dim); margin-top: 4px; }
-  .agent-card .files { font: 10px/1.4 ui-monospace, SFMono-Regular, monospace; color: var(--dim); margin-top: 6px; }
+.tab-bar { display: flex; gap: 2px; flex-shrink: 0; }
+.tab-btn {
+  position: relative;
+  font-family: var(--f-display); font-weight: 500; font-size: 13px;
+  letter-spacing: -.005em;
+  padding: 15px 13px 14px; border: none; cursor: pointer;
+  background: transparent; color: var(--ink-3);
+  transition: color .25s var(--ease);
+  white-space: nowrap;
+}
+.tab-btn::after {
+  content: ''; position: absolute; left: 13px; right: 13px; bottom: 0; height: 2px;
+  background: var(--red); transform: scaleX(0); transform-origin: left;
+  transition: transform .38s var(--ease);
+}
+.tab-btn:hover { color: var(--ink); }
+.tab-btn.active { color: var(--ink); font-weight: 700; }
+.tab-btn.active::after { transform: scaleX(1); }
 
-  /* ── TIMELINE (CARRUSEL) ── */
-  .timeline {
-    display: flex;
-    gap: 16px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    padding: 16px 0 24px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-    scrollbar-color: var(--accent) var(--panel);
-  }
-  .timeline::-webkit-scrollbar { height: 6px; }
-  .timeline::-webkit-scrollbar-track { background: var(--panel); border-radius: 3px; }
-  .timeline::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
-  .timeline-item {
-    flex: 0 0 320px;
-    scroll-snap-align: start;
-    padding: 20px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    transition: border-color .2s, box-shadow .2s;
-  }
-  .timeline-item:hover {
-    border-color: var(--accent);
-    box-shadow: 0 0 20px rgba(122,162,255,0.08);
-  }
-  .timeline-item::before { display: none; }
-  .timeline-item .phase-tag {
-    font: 600 10px/1 ui-monospace, SFMono-Regular, monospace;
-    letter-spacing: .1em; text-transform: uppercase;
-    color: var(--accent); margin-bottom: 6px;
-  }
-  .timeline-item h3 { font-size: 16px; margin-bottom: 4px; }
-  .timeline-item .detail { font-size: 13px; color: var(--dim); }
-  .timeline-item .detail strong { color: var(--tx); }
-  .timeline-item .files-list {
-    font: 11px/1.6 ui-monospace, SFMono-Regular, monospace;
-    color: var(--dim);
-    margin-top: 8px;
-    padding: 8px 12px;
-    background: var(--bg2);
-    border-radius: 4px;
-  }
+.nav-links {
+  display: flex; gap: 20px; overflow-x: auto; scrollbar-width: none;
+  margin-left: 10px; padding-left: 18px; border-left: 1px solid var(--rule);
+  align-self: stretch; align-items: center;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+nav .nav-links a {
+  font-size: 13px; color: var(--ink-3); white-space: nowrap; padding: 15px 0;
+  text-decoration: none; transition: color .2s var(--ease);
+}
+nav .nav-links a:hover { color: var(--ink); }
+nav .nav-links a.active { color: var(--ink); font-weight: 600; }
 
-  /* ── METRICS DASHBOARD ── */
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 10px;
-  }
-  .metric-card {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 16px;
-    text-align: center;
-  }
-  .metric-card .value {
-    font-size: 28px; font-weight: 800; letter-spacing: -.02em;
-    color: var(--tx);
-  }
-  .metric-card .value.green { color: var(--ok); }
-  .metric-card .value.blue { color: var(--accent); }
-  .metric-card .label {
-    font-size: 11px; color: var(--dim); margin-top: 4px;
-    text-transform: uppercase; letter-spacing: .08em;
-  }
+.nav-actions {
+  display: flex; align-items: center; gap: clamp(10px, 1.4vw, 18px);
+  margin-left: auto; flex-shrink: 0;
+}
+.nav-actions .btn-sound { padding: 6px; margin: -6px 0; }
+.lang-switch { display: flex; gap: 0; flex-shrink: 0; align-items: center; }
+.lang-btn {
+  font-family: var(--f-data); font-weight: 500; font-size: 12px;
+  padding: 5px 8px; border: none; background: transparent; color: var(--ink-3);
+  cursor: pointer; transition: color .2s var(--ease);
+}
+.lang-btn + .lang-btn { border-left: 1px solid var(--rule); }
+.lang-btn:hover { color: var(--ink); }
+.lang-btn.active { color: var(--red); font-weight: 700; }
 
-  /* ── TABLE ── */
-  table.data {
-    width: 100%;
-    border-collapse: collapse;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    overflow: hidden;
-    font-size: 13px;
-  }
-  table.data th {
-    text-align: left;
-    padding: 10px 14px;
-    background: var(--panel2);
-    color: var(--dim);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    border-bottom: 1px solid var(--line);
-  }
-  table.data td {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--line);
-    color: var(--tx);
-  }
-  table.data tr:last-child td { border-bottom: none; }
-  table.data .num { text-align: right; font-variant-numeric: tabular-nums; }
+/* ═══════════════════════ HERO ═══════════════════════ */
+.hero {
+  position: relative;
+  min-height: calc(100svh - var(--nav-h));
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 0 var(--gutter) clamp(38px, 5vh, 62px);
+  background: var(--paper);
+  overflow: hidden;
+}
+.hero-content { position: relative; z-index: 3; width: var(--col); margin: 0 auto; }
 
-  /* ── GALLERY ── */
-  .gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 10px;
-  }
-  .gallery figure {
-    margin: 0;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .gallery img, .gallery video {
-    width: 100%;
-    display: block;
-  }
-  .gallery figcaption {
-    padding: 6px 10px;
-    font-size: 11px;
-    color: var(--dim);
-  }
+/* El hero con vídeo no funde la imagen en el papel: no hay degradado. La placa
+   ocupa el resto del pliegue a sangre y el titular se apoya en papel debajo,
+   así el juego se ve a plena fuerza y la tipografía es negro sobre blanco. */
+.hero.has-video {
+  display: grid; grid-template-rows: minmax(140px, 1fr) auto;
+  padding: 0; justify-content: stretch;
+}
+.hero.has-video .hero-media { position: relative; overflow: hidden; background: var(--ink); }
+.hero.has-video .hero-video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover;
+  /* Recorta las dos bandas negras quemadas en el .mov (tira de pointer-lock
+     arriba, letterbox abajo). Medidas: 2.5% y 5.83%. */
+  transform: scale(1.16);
+}
+.hero.has-video .hero-content {
+  width: 100%; max-width: calc(1180px + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: clamp(26px, 3.4vh, 40px) var(--gutter) clamp(28px, 3.6vh, 46px);
+}
+.hero.has-video h1 { font-size: clamp(50px, 8.6vw, 112px); }
+.hero.has-video .subtitle { margin-bottom: clamp(18px, 2.4vh, 26px); }
 
-  /* ── ITERATION DIAGRAM ── */
-  .iter-flow {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin: 16px 0;
-  }
-  .iter-step {
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-  }
-  .iter-step.build { background: rgba(52,211,153,0.12); color: var(--ok); border: 1px solid rgba(52,211,153,0.25); }
-  .iter-step.critique { background: rgba(255,107,107,0.12); color: var(--fail); border: 1px solid rgba(255,107,107,0.25); }
-  .iter-step.fix { background: rgba(226,185,59,0.12); color: var(--gold); border: 1px solid rgba(226,185,59,0.25); }
-  .iter-step.pass { background: rgba(52,211,153,0.20); color: var(--ok); border: 1px solid rgba(52,211,153,0.4); }
-  .iter-arrow { color: var(--dim); font-size: 16px; }
+.hero h1 {
+  font-family: var(--f-display); font-weight: 700;
+  font-size: clamp(58px, 12.5vw, 168px);
+  letter-spacing: -.045em; line-height: .86;
+  margin-bottom: clamp(16px, 2.2vh, 26px);
+  text-wrap: balance;
+}
+.hero h1 span { color: var(--red); }
+.hero .subtitle {
+  font-size: clamp(16px, 1.5vw, 19px); line-height: 1.55;
+  color: var(--ink-2); max-width: 60ch;
+  margin-bottom: clamp(22px, 3vh, 34px);
+}
+.hero .subtitle strong { color: var(--ink); font-weight: 600; }
 
-  .iter-example {
-    background: var(--bg2);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 16px 20px;
-    margin-top: 16px;
-    font-size: 13px;
-  }
-  .iter-example .tag {
-    font: 600 10px/1 ui-monospace, SFMono-Regular, monospace;
-    letter-spacing: .08em; color: var(--accent); margin-bottom: 8px;
-  }
+.hero-meta {
+  display: flex; gap: 26px; flex-wrap: wrap;
+  font-size: 14px; color: var(--ink-3); line-height: 1.5;
+  padding-top: 20px; border-top: 1px solid var(--rule);
+  max-width: 760px;
+}
+.hero-meta strong { color: var(--ink); font-weight: 600; }
 
-  /* ── LEARNING CARDS ── */
-  .learning-list { list-style: none; padding: 0; }
-  .learning-list li {
-    padding: 14px 18px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    margin-bottom: 8px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-  .learning-list .num {
-    font: 700 13px/1 ui-monospace, SFMono-Regular, monospace;
-    color: var(--accent);
-    min-width: 24px;
-    padding-top: 2px;
-  }
-  .learning-list .text { font-size: 14px; color: var(--tx); }
-  .learning-list .text strong { color: var(--accent); }
+.hero-actions { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
 
-  /* ── FOOTER ── */
-  footer {
-    border-top: 1px solid var(--line);
-    padding: 32px 24px;
-    text-align: center;
-    font-size: 12px;
-    color: var(--dim);
-  }
-  footer a { color: var(--accent); }
-  footer .links { margin-bottom: 8px; }
+/* Marca real, sin caja detrás: el wordmark desnudo sobre el papel. */
+.powered {
+  display: flex; align-items: center; gap: 15px;
+  margin-top: clamp(20px, 2.8vh, 30px);
+  padding-top: clamp(16px, 2.2vh, 22px);
+  border-top: 1px solid var(--rule);
+}
+.powered-label { font-size: 12.5px; color: var(--ink-3); white-space: nowrap; }
+.powered-mark {
+  display: inline-flex; color: var(--ink); text-decoration: none;
+  transition: color .25s var(--ease);
+}
+.powered-mark:hover { color: var(--red); }
+.nan-mark { display: block; height: 19px; width: auto; }
 
-  /* ── TABS ── */
-  .tab-bar {
-    display: flex; gap: 0; flex-shrink: 0;
-  }
-  .tab-btn {
-    font: 600 12px/1 ui-monospace, SFMono-Regular, monospace;
-    letter-spacing: .06em; text-transform: uppercase;
-    padding: 12px 16px; border: none; cursor: pointer;
-    background: transparent; color: var(--dim);
-    border-bottom: 2px solid transparent;
-    transition: color .2s, border-color .2s;
-    white-space: nowrap;
-  }
-  .tab-btn:hover { color: var(--tx); }
-  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+/* ═══════════════════════ HERO DE INICIO ═══════════════════════
+   Sólo #hero-inicio. El vídeo es el fondo entero del pliegue y el bloque de
+   acción va centrado; los heroes de los loops no heredan nada de esto.
+   El tinte es plano, no un degradado: oscurece por igual para que el texto en
+   blanco despeje su fondo en cualquier fotograma del bucle. */
+.hero.hero-cover {
+  /* Columna explícita: con una pista `auto`, un hijo a `width:100%` es una
+     referencia circular y el navegador acaba colocando la pista a un lado. */
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  align-content: center; justify-items: center;
+  min-height: calc(100svh - var(--nav-h));
+  padding: clamp(72px, 11vh, 128px) var(--gutter) clamp(76px, 12vh, 132px);
+  background: var(--ink);
+}
+.hero-cover .hero-media { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
+.hero-cover .hero-video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover;
+  /* Recorta las bandas negras quemadas en el .mov: 2.5% arriba, 5.83% abajo. */
+  transform: scale(1.16);
+}
+.hero-cover .hero-tint { position: absolute; inset: 0; z-index: 1; background: rgba(9, 10, 12, .6); }
+.hero-cover .hero-content {
+  position: relative; z-index: 2;
+  width: var(--col); max-width: none; justify-self: center;
+  text-align: center;
+}
+.hero-cover h1 {
+  /* Acotado para que ".Spider-NaN" quepa en una línea: un acento rojo suelto
+     al pie de un titular partido no significa nada. */
+  font-size: clamp(50px, 9.4vw, 128px);
+  text-wrap: nowrap;
+  color: #fff; margin-bottom: clamp(18px, 2.6vh, 28px);
+}
+.hero-cover h1 span { color: #ff5348; }
+.hero-cover .subtitle {
+  color: #fff; max-width: 56ch;
+  margin: 0 auto clamp(26px, 3.4vh, 38px);
+}
+.hero-cover .subtitle strong { color: #fff; font-weight: 600; }
+.hero-cover .hero-actions { justify-content: center; }
+@media (max-width: 520px) { .hero-cover h1 { text-wrap: balance; } }
+.hero-cover .btn-play { background: #fff; color: var(--ink); }
+.hero-cover .btn-play:hover, .hero-cover .btn-play:focus-visible { background: #ff5348; color: #fff; }
 
-  /* ── LANG SWITCH ── */
-  .lang-switch { display: flex; gap: 4px; flex-shrink: 0; margin-left: auto; }
-  .lang-btn {
-    font: 700 11px/1 ui-monospace, SFMono-Regular, monospace;
-    letter-spacing: .06em;
-    padding: 6px 10px; border-radius: 4px;
-    border: 1px solid var(--line);
-    background: transparent; color: var(--dim);
-    cursor: pointer;
-    transition: color .2s, border-color .2s, background .2s;
-  }
-  .lang-btn:hover { color: var(--tx); border-color: var(--accent); }
-  .lang-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(122,162,255,0.08); }
+/* Crédito de patrocinio anclado al pie del pliegue, no apilado bajo el botón. */
+.hero-cover .powered {
+  position: absolute; z-index: 2;
+  left: 50%; transform: translateX(-50%);
+  bottom: clamp(26px, 4vh, 44px);
+  margin: 0; padding: 0; border: none;
+  justify-content: center;
+}
+.hero-cover .powered-label { color: rgba(255, 255, 255, .72); }
+.hero-cover .powered-mark { color: #fff; }
+.hero-cover .powered-mark:hover { color: #ff5348; }
 
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
+/* ═══════════════════════ CONTROLES ═══════════════════════ */
+/* La acción no se mueve al hover: cambia de estado, que es lo que un control
+   hace. Nada de saltitos. */
+.btn-play {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 15px 26px 15px 28px;
+  background: var(--ink); color: #fff;
+  font-family: var(--f-display); font-weight: 700; font-size: 16px;
+  letter-spacing: -.01em; text-decoration: none;
+  border: none; cursor: pointer;
+  transition: background .25s var(--ease);
+}
+.btn-play:hover, .btn-play:focus-visible { background: var(--red); color: #fff; text-decoration: none; }
+.btn-play .arrow { display: inline-flex; transition: transform .3s var(--ease); }
+.btn-play:hover .arrow { transform: translateX(4px); }
+.btn-play svg { display: block; }
+.btn-play--nav { padding: 9px 15px 9px 17px; font-size: 13.5px; gap: 8px; }
 
-  /* ── LOOP 2 EXTRAS ── */
-  .iter-badge {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700;
-    letter-spacing: .04em;
-  }
-  .iter-badge.pass { background: #0f2b24; color: var(--ok); border: 1px solid #1d5c4b; }
-  .iter-badge.fail { background: #33151a; color: var(--fail); border: 1px solid #6b2530; }
-  .iter-badge.partial { background: #2b240f; color: var(--gold); border: 1px solid #6b5c1d; }
+/* Botón de sonido: la marca desnuda, sin caja. El estado lo dice el icono. */
+.btn-sound {
+  display: inline-flex; align-items: center;
+  padding: 0; border: none; background: transparent; cursor: pointer;
+  color: var(--ink-2);
+  transition: color .2s var(--ease);
+}
+.btn-sound:hover { color: var(--ink); }
+.btn-sound .ico { display: block; }
+.btn-sound .ico-off { display: none; }
+.btn-sound.muted .ico-on { display: none; }
+.btn-sound.muted .ico-off { display: block; }
+.btn-sound.muted { color: var(--ink-3); }
 
-  .verdict-row {
-    display: flex; gap: 8px; align-items: center; margin-bottom: 6px;
-  }
-  .verdict-row .label { font-size: 13px; color: var(--tx); flex: 1; }
+/* Enlace social: la marca desnuda en el nav, sin caja. Misma tinta que el resto
+   de controles, sólo cambia de estado al hover. */
+.nav-social {
+  display: inline-flex; align-items: center;
+  padding: 6px; margin: -6px 0;
+  color: var(--ink-2); text-decoration: none;
+  transition: color .2s var(--ease);
+}
+.nav-social:hover { color: var(--ink); }
+.nav-social svg { display: block; }
 
-  .compare-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
-  }
-  .compare-grid figure {
-    margin: 0;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .compare-grid img {
-    width: 100%; display: block;
-  }
-  .compare-grid figcaption {
-    padding: 6px 10px; font-size: 11px; color: var(--dim);
-  }
+/* Texto que sólo existe para lectores de pantalla: la etiqueta del botón de
+   sonido, cuyo estado ya cuenta el icono. */
+.vh {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
 
-  .subsystem-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 12px;
-  }
-  .subsystem-card {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 20px;
-  }
-  .subsystem-card .sys-tag {
-    font: 600 10px/1 ui-monospace, SFMono-Regular, monospace;
-    letter-spacing: .1em; text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-  .subsystem-card h3 { font-size: 15px; margin-bottom: 6px; }
-  .subsystem-card .detail { font-size: 13px; color: var(--dim); }
-  .subsystem-card .detail strong { color: var(--tx); }
-  .subsystem-card .files-list {
-    font: 11px/1.6 ui-monospace, SFMono-Regular, monospace;
-    color: var(--dim); margin-top: 10px;
-    padding: 8px 12px; background: var(--bg2); border-radius: 4px;
-  }
+/* Heroes sin vídeo (Loop 1 / Loop 2 / Definitivo): papel, no vídeo.
+   Deliberadamente distintos del hero de Inicio para que ése siga siendo el único
+   que abre con el juego. */
+.hero.paper { min-height: min(72vh, 660px); justify-content: flex-end; border-bottom: 1px solid var(--rule); }
+.hero.paper h1 { font-size: clamp(52px, 10vw, 132px); }
 
-  .budget-table {
-    width: 100%; border-collapse: collapse;
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 8px; overflow: hidden; font-size: 13px;
-  }
-  .budget-table th, .budget-table td {
-    padding: 8px 14px; border-bottom: 1px solid var(--line); text-align: left;
-  }
-  .budget-table th {
-    background: var(--panel2); color: var(--dim);
-    font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
-  }
-  .budget-table tr:last-child td { border-bottom: none; }
-  .budget-table .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .budget-table .pass { color: var(--ok); font-weight: 600; }
-  .budget-table .headroom { color: var(--dim); font-size: 11px; }
+/* ═══════════════════════ ESTRUCTURA ═══════════════════════ */
+main { width: var(--col); margin: 0 auto; padding: 0 var(--gutter) clamp(80px, 12vh, 140px); }
 
-  /* ── DEFINITIVO EXTRAS ── */
-  /* Comparación "Antes y Después": exactamente 2 figuras al lado. Reusa .compare-grid
-     para el estilo de figure/imagen; esta clase solo fija el número de columnas. */
-  .compare-split { grid-template-columns: 1fr 1fr; }
-  .arcade-shot {
-    width: 100%; display: block;
-    border: 1px solid var(--line); border-radius: 8px;
-  }
+section { padding-top: clamp(56px, 8vh, 96px); }
+main > section:first-child { padding-top: clamp(44px, 6vh, 72px); }
 
-  /* ── INICIO: VIDEO COMPARISON ── */
-  /* Dos videos loop lado a lado, recortados al centro donde siempre está el
-     héroe. El contenedor es relativo para posicionar el divisor "VS". */
-  .video-compare { position: relative; }
-  .video-compare video {
-    width: 100%;
-    display: block;
-    aspect-ratio: 16 / 10;
-    object-fit: cover;
-    object-position: center;
-    background: var(--bg2);
-  }
-  .vs-divider {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 2;
-    display: flex; align-items: center; justify-content: center;
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    background: var(--panel2);
-    border: 1px solid var(--line);
-    box-shadow: 0 0 0 4px rgba(11,14,19,0.6);
-    font: 700 11px/1 ui-monospace, SFMono-Regular, monospace;
-    letter-spacing: .05em;
-    color: var(--accent);
-    pointer-events: none;
-  }
+/* Cabecera de sección: un filete de límite, el titular grande debajo a la
+   izquierda y, en su misma línea, el dato marginal real (commits, veredictos)
+   alineado a la derecha. Sin kicker: el titular se sostiene solo. */
+.sec-head {
+  border-top: 1px solid var(--ink);
+  padding-top: 20px; margin-bottom: 26px;
+  display: grid; grid-template-columns: minmax(0,1fr) auto;
+  align-items: baseline; gap: 20px 32px;
+}
+.sec-head h2 { grid-column: 1; }
+.sec-note {
+  grid-column: 2; justify-self: end;
+  font-family: var(--f-data); font-size: 12px; font-weight: 400;
+  color: var(--ink-3); text-align: right; line-height: 1.6;
+}
+.sec-note code { color: var(--ink-3); font-size: 1em; }
 
-  /* ── RESPONSIVE ── */
-  @media (max-width: 640px) {
-    nav { padding: 0 12px; gap: 12px; flex-wrap: wrap; }
-    .tab-bar { width: 100%; }
-    .tab-btn { flex: 1; text-align: center; padding: 10px 8px; font-size: 11px; }
-    main { padding: 0 16px 60px; }
-    .hero { padding: 60px 16px 40px; min-height: 70vh; }
-    .card-grid { grid-template-columns: 1fr; }
-    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
-    .gallery { grid-template-columns: repeat(2, 1fr); }
-    .agents-grid { grid-template-columns: repeat(2, 1fr); }
-    .arch-flow { min-width: auto; flex-direction: column; align-items: center; }
-    .arch-arrow { transform: rotate(90deg); padding: 4px 0; }
-    .subsystem-grid { grid-template-columns: 1fr; }
-    .compare-grid { grid-template-columns: repeat(2, 1fr); }
-    .compare-split { grid-template-columns: 1fr; }
-    .vs-divider { display: none; }
-  }
+h1, h2, h3, h4 { font-family: var(--f-display); text-wrap: balance; }
+h2 {
+  font-size: clamp(29px, 3.4vw, 44px); font-weight: 700;
+  letter-spacing: -.035em; line-height: 1.02;
+}
+h3 { font-size: 18px; font-weight: 700; letter-spacing: -.015em; line-height: 1.28; color: var(--ink); }
+h4 {
+  font-size: 15px; font-weight: 700; letter-spacing: -.01em;
+  margin: clamp(34px, 5vh, 52px) 0 16px; color: var(--ink);
+}
 
-  /* ── SCROLL ANIMATIONS ── */
-  .reveal {
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity .5s ease-out, transform .5s ease-out;
-  }
-  .reveal.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
+p { color: var(--ink-2); margin-bottom: 14px; max-width: 68ch; }
+p:last-child { margin-bottom: 0; }
+p strong { color: var(--ink); }
+.lede { font-size: 18px; line-height: 1.6; color: var(--ink-2); max-width: 64ch; }
+
+.hint { font-size: 13px; color: var(--ink-3); margin-top: 10px; }
+
+/* ═══════════════════════ FICHAS ═══════════════════════
+   Sin cajas. Cada ficha se apoya en el papel bajo un filete superior, y ese
+   filete lleva el veredicto: negro = neutral, rojo = el crítico marcó algo,
+   azul = medido y conforme. El color dice qué pasó, no adorna. */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(272px, 1fr)); gap: 32px 34px; }
+.card { border-top: 1px solid var(--ink); padding-top: 15px; }
+.card > h3 { margin-bottom: 7px; }
+.card .meta {
+  font-family: var(--f-data); font-size: 11.5px; color: var(--ink-3);
+  margin-bottom: 10px; min-height: 18px;
+}
+.card p { font-size: 14.5px; line-height: 1.62; max-width: 74ch; }
+.card--fail { border-top-color: var(--red); border-top-width: 2px; padding-top: 14px; }
+.card--pass { border-top-color: var(--blue); border-top-width: 2px; padding-top: 14px; }
+
+/* ═══════════════════════ VEREDICTOS ═══════════════════════
+   Ni pastillas ni fondos de color: el veredicto es texto, con una marca
+   dibujada delante. Rojo = el crítico encontró algo. Azul = medido y conforme. */
+.verdict {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--f-data); font-size: 11.5px; font-weight: 700;
+  letter-spacing: .01em; line-height: 1;
+}
+.verdict::before {
+  content: ''; width: 8px; height: 8px; flex-shrink: 0;
+  background: currentColor;
+}
+.verdict.pass { color: var(--blue); }
+.verdict.pass::before { clip-path: polygon(0 52%, 38% 100%, 100% 8%, 100% 32%, 38% 100%, 0 76%); }
+.verdict.fail { color: var(--red); }
+.verdict.fail::before { clip-path: polygon(12% 0, 50% 38%, 88% 0, 100% 12%, 62% 50%, 100% 88%, 88% 100%, 50% 62%, 12% 100%, 0 88%, 38% 50%, 0 12%); }
+.verdict.partial { color: var(--ink-3); }
+.verdict.partial::before { clip-path: polygon(0 38%, 100% 38%, 100% 62%, 0 62%); }
+
+.verdict-row { display: flex; gap: 12px; align-items: baseline; margin-bottom: 8px; }
+.verdict-row .label { font-size: 14.5px; color: var(--ink-2); flex: 1; }
+
+/* ═══════════════════════ SECUENCIA DEL CICLO ═══════════════════════ */
+.iter-flow {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin: 22px 0 4px; padding: 18px 0;
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+}
+.iter-step {
+  font-family: var(--f-display); font-size: 14px; font-weight: 700;
+  letter-spacing: -.01em; color: var(--ink);
+}
+.iter-step.critique { color: var(--red); }
+.iter-step.pass { color: var(--blue); }
+.iter-arrow { color: var(--rule-mid); display: inline-flex; flex-shrink: 0; }
+.iter-arrow svg { display: block; }
+
+/* Cita del crítico: su voz, marcada en rojo al margen con una escuadra dibujada. */
+.iter-example {
+  position: relative; margin-top: 22px; padding: 4px 0 4px 26px;
+  font-size: 14.5px; line-height: 1.66; color: var(--ink-2);
+}
+.iter-example::before {
+  content: ''; position: absolute; left: 0; top: 5px; bottom: 5px;
+  width: 11px;
+  border-left: 2px solid var(--red);
+  border-top: 2px solid var(--red);
+  border-bottom: 2px solid var(--red);
+  border-radius: 3px 0 0 3px;
+}
+.iter-example .tag {
+  display: block; font-family: var(--f-data); font-size: 11px; font-weight: 700;
+  letter-spacing: .04em; color: var(--red); margin-bottom: 8px;
+}
+.iter-example p { max-width: 74ch; margin: 0; font-size: inherit; color: inherit; }
+.iter-example strong { color: var(--ink); }
+
+/* ═══════════════════════ PROMPT ═══════════════════════ */
+.prompt-block { border-top: 1px solid var(--ink); padding-top: 0; }
+.prompt-block::before {
+  content: attr(data-label); display: block;
+  font-family: var(--f-data); font-size: 11px; font-weight: 700;
+  letter-spacing: .06em; color: var(--ink-3);
+  padding: 12px 0 22px;
+}
+.prompt-text {
+  font-family: var(--f-data); font-size: 14px; line-height: 1.95;
+  color: var(--ink); white-space: pre-wrap; max-width: 74ch;
+}
+.prompt-text .hl {
+  color: var(--ink); font-weight: 700;
+  background: linear-gradient(transparent 62%, rgba(204,32,24,.2) 62%);
+}
+/* Anotación al margen: la mano del crítico sobre el prompt. */
+.prompt-annotation {
+  display: block; position: relative;
+  margin: 14px 0 20px; padding-left: 24px;
+  font-family: var(--f-text); font-size: 13.5px; line-height: 1.6;
+  color: var(--red-deep); white-space: normal; max-width: 62ch;
+}
+.prompt-annotation::before {
+  content: ''; position: absolute; left: 0; top: 4px; bottom: 4px;
+  width: 10px; border-left: 2px solid var(--red); border-top: 2px solid var(--red);
+  border-radius: 3px 0 0 0;
+}
+
+/* ═══════════════════════ DIAGRAMA DEL LOOP ═══════════════════════ */
+.arch-diagram { margin-top: 6px; overflow-x: auto; padding-bottom: 6px; }
+.arch-diagram svg { display: block; min-width: 720px; width: 100%; height: auto; }
+
+.agents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 30px 34px; margin-top: 8px; }
+.agent-card { border-top: 1px solid var(--ink); padding-top: 15px; }
+.agent-card .name { font-family: var(--f-display); font-size: 16px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); }
+.agent-card .role { font-size: 13.5px; color: var(--ink-3); margin-top: 3px; font-weight: 500; }
+.agent-card .role.critic { color: var(--red); }
+.agent-card .files { font-size: 13.5px; line-height: 1.6; color: var(--ink-3); margin-top: 11px; }
+
+/* ═══════════════════════ TIMELINE (carrusel) ═══════════════════════ */
+.timeline {
+  display: flex; gap: 30px; overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x proximity; padding: 4px 0 26px;
+  -webkit-overflow-scrolling: touch;
+}
+.timeline-item {
+  flex: 0 0 clamp(268px, 30vw, 320px); scroll-snap-align: start;
+  border-top: 1px solid var(--ink); padding-top: 15px;
+  display: flex; flex-direction: column;
+}
+.timeline-item .phase-tag {
+  font-family: var(--f-data); font-size: 11px; font-weight: 700;
+  letter-spacing: .04em; color: var(--red); margin-bottom: 8px;
+}
+.timeline-item h3 { font-size: 17px; margin-bottom: 8px; }
+.timeline-item .detail { font-size: 14px; line-height: 1.6; color: var(--ink-2); }
+.timeline-item .detail strong { color: var(--ink); font-weight: 600; }
+.timeline-item .files-list {
+  font-family: var(--f-data); font-size: 11.5px; line-height: 1.75;
+  color: var(--ink-3); margin-top: 12px; padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+
+/* ═══════════════════════ HOJA DE DATOS ═══════════════════════
+   Una rejilla de instrumento, no una pared de tarjetas: los valores comparten
+   una retícula de filetes y todos se leen en la misma cifra. */
+.metrics-grid {
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
+  border-top: 1px solid var(--ink);
+  border-left: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.metric-card {
+  border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+  padding: 16px 16px 15px; background: var(--paper);
+  display: flex; flex-direction: column;
+}
+.metric-card .value {
+  font-family: var(--f-data); font-size: clamp(24px, 2.4vw, 31px); font-weight: 700;
+  letter-spacing: -.03em; line-height: 1.05; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.metric-card .value.measured { color: var(--blue); }
+.metric-card .label {
+  font-size: 12px; line-height: 1.4; color: var(--ink-3);
+  margin-top: auto; padding-top: 7px;
+}
+
+/* ═══════════════════════ TABLAS ═══════════════════════ */
+table.data, .budget-table {
+  width: 100%; max-width: 880px; border-collapse: collapse;
+  font-family: var(--f-data); font-size: 13px;
+  border-top: 1px solid var(--ink);
+}
+table.data th, .budget-table th {
+  text-align: left; padding: 11px 14px 11px 0;
+  color: var(--ink-3); font-size: 11px; font-weight: 500;
+  letter-spacing: .05em; text-transform: uppercase;
+  border-bottom: 1px solid var(--rule-mid); white-space: nowrap;
+}
+table.data td, .budget-table td {
+  padding: 11px 14px 11px 0; border-bottom: 1px solid var(--rule);
+  color: var(--ink); vertical-align: baseline;
+}
+table.data th:last-child, table.data td:last-child,
+.budget-table th:last-child, .budget-table td:last-child { padding-right: 0; }
+table.data tr:last-child td, .budget-table tr:last-child td { border-bottom: 1px solid var(--rule-mid); }
+table.data .num, .budget-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.budget-table .pass { color: var(--blue); font-weight: 700; }
+.budget-table .fail { color: var(--red); font-weight: 700; }
+.budget-table .headroom { color: var(--ink-3); font-weight: 400; }
+.table-scroll { overflow-x: auto; }
+
+/* ═══════════════════════ IMÁGENES ═══════════════════════ */
+.gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 26px 24px; }
+.gallery figure, .compare-grid figure { margin: 0; display: flex; flex-direction: column; }
+.gallery figcaption, .compare-grid figcaption { margin-top: auto; }
+.gallery img, .gallery video, .compare-grid img, .compare-grid video {
+  width: 100%; height: auto; display: block; background: var(--paper-warm);
+  border: 1px solid var(--rule);
+}
+.gallery figcaption, .compare-grid figcaption {
+  padding-top: 9px; font-size: 12.5px; line-height: 1.5; color: var(--ink-3);
+}
+.compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(216px, 1fr)); gap: 26px 24px; }
+.compare-split { grid-template-columns: 1fr 1fr; }
+.compare-split > figure > img, .compare-split > figure > video,
+.compare-split > figure > .media {
+  aspect-ratio: 16 / 10; object-fit: cover; object-position: center;
+}
+.arcade-shot { width: 100%; height: auto; display: block; border: 1px solid var(--rule); }
+
+/* Comparación en vídeo lado a lado */
+.video-compare { position: relative; }
+.video-compare figure { border: 1px solid var(--rule); }
+/* El .mov trae quemadas dos bandas negras (2.5% arriba: la tira de
+   pointer-lock; 5.83% abajo: letterbox). Sólo el escalado desde el centro
+   recorta ambas, y necesita una caja de recorte propia: un transform agranda
+   la caja visual pero no la de maquetación, y el sobrante invadiría el pie. */
+.video-compare .media {
+  display: block; overflow: hidden; aspect-ratio: 16 / 10; background: var(--ink);
+}
+.video-compare .media video {
+  display: block; width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  transform: scale(1.16); border: none;
+}
+.video-compare figcaption { padding-left: 0; }
+.vs-divider {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  z-index: 2; display: grid; place-items: center;
+  width: 46px; height: 46px; border-radius: 50%;
+  background: var(--paper); border: 1px solid var(--ink);
+  font-family: var(--f-data); font-size: 11px; font-weight: 700;
+  color: var(--ink); pointer-events: none; line-height: 1;
+}
+
+/* ═══════════════════════ PLIEGO DE PANTALLAS (pestaña Definitivo) ═══════════════════════
+   El Definitivo no se lee como un informe de loop. Los loops se leen en rejillas
+   de fichas; el producto terminado se lee como un pliego: cada pantalla ocupa su
+   propia plancha ancha y su nota va AL MARGEN, no debajo. La nota se queda
+   pegada mientras la plancha pasa, así que la pantalla y lo que se dice de ella
+   nunca se separan. */
+.def-head { max-width: 70ch; margin-bottom: clamp(24px, 3.6vh, 38px); }
+.def-head h2 { font-size: clamp(30px, 4.4vw, 46px); letter-spacing: -.035em; }
+.def-head .lede { margin-top: 11px; }
+.def-head .hint { margin-top: 12px; }
+
+.screen-list { display: grid; gap: clamp(38px, 6vh, 66px); }
+.screen-plate { margin: 0; display: grid; gap: 15px; }
+.screen-plate > img {
+  width: 100%; height: auto; display: block;
+  border: 1px solid var(--rule); background: var(--paper-warm);
+}
+.plate-meta { border-top: 2px solid var(--ink); padding-top: 13px; }
+.plate-state {
+  display: block; font-family: var(--f-data); font-size: 12px; font-weight: 500;
+  color: var(--ink-3); letter-spacing: -.01em; margin-bottom: 6px;
+}
+.plate-meta h3 { font-size: 17px; margin-bottom: 7px; }
+.plate-meta p { font-size: 14px; line-height: 1.62; color: var(--ink-2); max-width: 46ch; }
+.plate-meta p + p { margin-top: 8px; }
+.plate-meta p strong { color: var(--ink); font-weight: 600; }
+@media (min-width: 880px) {
+  .screen-plate { grid-template-columns: 216px minmax(0, 1fr); gap: 0 38px; align-items: start; }
+  .plate-meta { position: sticky; top: calc(var(--nav-h) + 24px); }
+}
+
+/* Filas parejas: cuando varias piezas se leen en paralelo, sus partes se
+   alinean en la misma horizontal aunque el texto de una sea más largo. */
+.gallery--baseline { grid-template-rows: auto auto; }
+.gallery--baseline figure { display: grid; grid-template-rows: subgrid; grid-row: span 2; }
+.gallery--baseline img { align-self: end; }
+.voice-grid .card { display: flex; flex-direction: column; }
+.voice-grid .card audio { margin-top: auto; }
+
+/* ═══════════════════════ SUBSISTEMAS ═══════════════════════ */
+.subsystem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(288px, 1fr)); gap: 34px 36px; }
+.subsystem-card { border-top: 1px solid var(--ink); padding-top: 15px; }
+.subsystem-card .sys-tag {
+  font-family: var(--f-data); font-size: 11px; font-weight: 700;
+  letter-spacing: .04em; color: var(--red); margin-bottom: 8px;
+}
+.subsystem-card h3 { font-size: 17px; margin-bottom: 9px; }
+.subsystem-card .detail { font-size: 14px; line-height: 1.66; color: var(--ink-2); }
+.subsystem-card .detail strong { color: var(--ink); font-weight: 600; }
+.subsystem-card .files-list {
+  font-family: var(--f-data); font-size: 11.5px; line-height: 1.75;
+  color: var(--ink-3); margin-top: 12px; padding-top: 11px;
+  border-top: 1px solid var(--rule);
+}
+
+/* ═══════════════════════ NAVEGACIÓN INTERNA (Inicio) ═══════════════════════ */
+.cta-stack { display: grid; gap: 0; border-top: 1px solid var(--ink); }
+.cta-card {
+  width: 100%; display: grid; grid-template-columns: minmax(0,1fr) auto;
+  align-items: center; gap: 24px; text-align: left;
+  background: transparent; border: none; border-bottom: 1px solid var(--rule);
+  padding: 24px 4px 24px 0; cursor: pointer; font: inherit; color: inherit;
+  text-decoration: none; transition: background .35s var(--ease);
+}
+.cta-card > span:first-child { transition: transform .35s var(--ease); }
+.cta-card:hover > span:first-child,
+.cta-card:focus-visible > span:first-child { transform: translateX(14px); }
+.cta-card:hover, .cta-card:focus-visible { background: var(--paper-warm); text-decoration: none; }
+.cta-card h3 { font-size: clamp(19px, 2.1vw, 25px); font-weight: 700; letter-spacing: -.03em; margin-bottom: 5px; }
+.cta-card .meta { font-size: 14.5px; color: var(--ink-3); margin: 0; max-width: 62ch; }
+.cta-card .arrow { color: var(--ink-3); display: inline-flex; flex-shrink: 0; transition: transform .35s var(--ease), color .25s var(--ease); }
+.cta-card:hover .arrow { color: var(--red); transform: translateX(6px); }
+.cta-card.primary h3 { color: var(--red); }
+
+/* ═══════════════════════ LISTA DE AJUSTES ═══════════════════════ */
+.learning-list { list-style: none; }
+.learning-list li {
+  display: grid; grid-template-columns: 22px minmax(0,1fr); gap: 10px;
+  padding: 11px 0; border-bottom: 1px solid var(--rule);
+  align-items: baseline;
+}
+.learning-list li:last-child { border-bottom: none; }
+.learning-list .num { position: relative; height: 1lh; }
+.learning-list .num::before {
+  content: ''; position: absolute; left: 0; top: .5lh;
+  width: 7px; height: 7px; margin-top: -3.5px; background: var(--red);
+}
+.learning-list .text { font-size: 14.5px; color: var(--ink-2); }
+
+/* ═══════════════════════ AUDIO ═══════════════════════ */
+audio { width: 100%; max-width: 340px; margin-top: 14px; height: 34px; }
+
+/* ═══════════════════════ FOOTER ═══════════════════════ */
+footer {
+  border-top: 1px solid var(--ink);
+  width: var(--col); margin: 0 auto;
+  padding: 34px var(--gutter) 0;
+}
+.footer-grid {
+  display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 24px 40px;
+  align-items: start; padding-bottom: 34px;
+}
+footer .links { display: flex; gap: 20px; flex-wrap: wrap; font-size: 14px; }
+footer .links a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule-mid); padding-bottom: 1px; }
+footer .links a:hover { color: var(--red); border-bottom-color: var(--red); }
+footer .colophon { font-size: 13px; line-height: 1.65; color: var(--ink-3); text-align: right; }
+footer .colophon p { color: inherit; margin: 0; max-width: none; }
+/* Firma: anclada al borde inferior, sin hueco debajo, por encima de todo. */
+.footer-mark {
+  display: block; width: 100%; height: auto;
+  margin-bottom: -.7%;
+}
+.footer-mark text {
+  font-family: var(--f-display); font-weight: 700;
+  letter-spacing: -.05em; fill: var(--ink);
+}
+.footer-mark .dot { fill: var(--red); }
+
+.arch-svg .arch-label { font-family: var(--f-display); font-size: 14px; font-weight: 700; letter-spacing: -.015em; }
+.arch-svg .arch-sub   { font-family: var(--f-text); font-size: 12px; fill: var(--ink-3); }
+.arch-svg .arch-loop  { font-family: var(--f-data); font-size: 12px; font-weight: 700; letter-spacing: .02em; }
+
+/* ═══════════════════════ UTILIDADES ═══════════════════════ */
+.mt1 { margin-top: 12px; }
+.mt2 { margin-top: 26px; }
+.mt3 { margin-top: clamp(30px, 4.5vh, 48px); }
+.measured-inline { color: var(--blue); font-weight: 700; font-family: var(--f-data); }
+
+/* ═══════════════════════ PESTAÑAS ═══════════════════════ */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ═══════════════════════ MOVIMIENTO ═══════════════════════
+   El contenido SIEMPRE es visible. La animación sólo desplaza; nunca decide si
+   algo existe. Si el observer no dispara, la página se lee entera igual. */
+.reveal { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .reveal { transform: translateY(15px); transition: transform .62s var(--ease); will-change: transform; }
+  .reveal.visible { transform: none; }
+}
+
+/* ═══════════════════════ RESPONSIVE ═══════════════════════ */
+@media (max-width: 1040px) { .metrics-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 900px) {
+  :root { --nav-h: 96px; }
+  html { scroll-padding-top: 150px; }
+  nav { flex-wrap: wrap; gap: 0 14px; padding: 0 var(--gutter); }
+  .tab-bar { order: 3; width: 100%; border-top: 1px solid var(--rule); overflow-x: auto; scrollbar-width: none; }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-btn { flex: 1 0 auto; padding: 11px 12px; }
+  .nav-links { display: none; }
+  .compare-split { grid-template-columns: 1fr; }
+  .vs-divider { display: none; }
+  .footer-grid { grid-template-columns: 1fr; }
+  footer .colophon { text-align: left; }
+  .sec-head { grid-template-columns: minmax(0,1fr); }
+  .sec-note { grid-column: 1; justify-self: start; text-align: left; }
+}
+@media (max-width: 900px) {
+}
+@media (max-width: 560px) {
+  :root { --nav-h: 134px; }
+  body { font-size: 16px; }
+  /* Cuatro pestañas no caben en una fila de 390px: rejilla 2×2, todas visibles. */
+  .tab-bar { display: grid; grid-template-columns: 1fr 1fr; overflow: visible; }
+  .tab-btn { padding: 11px 8px; font-size: 12.5px; text-align: center; }
+  .tab-btn::after { left: 8px; right: 8px; }
+  .tab-btn:nth-child(-n+2) { border-bottom: 1px solid var(--rule); }
+  .hero-meta { gap: 6px 20px; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .gallery, .compare-grid { grid-template-columns: 1fr 1fr; }
+  .card-grid, .agents-grid, .subsystem-grid { grid-template-columns: 1fr; }
+  .cta-card { grid-template-columns: minmax(0,1fr) auto; gap: 14px; }
+}
+
+@media print {
+  nav, .btn-sound, .scroll-hint { display: none; }
+  .tab-panel { display: block !important; }
+  .reveal { transform: none; }
+}
 </style>
-
-<!-- ═══════════════════════════════ DESKTOP-ONLY GUARD ═══════════════════════════════
-     The game takes pointer lock and moves with WASD, so a touch-only device cannot
-     play it. Capability detection, not user-agent sniffing: a tablet with a mouse
-     attached reports a fine pointer and is left alone. Runs in <head> so the page
-     never paints an enabled-looking Play button first. -->
-<script>
-(function() {
-  var m = window.matchMedia;
-  if (typeof m !== 'function') return;
-
-  var touchOnly = (navigator.maxTouchPoints || 0) > 0
-    && (m('(pointer: coarse)').matches || m('(hover: none)').matches)
-    && !m('(any-pointer: fine)').matches
-    && !m('(any-hover: hover)').matches;
-  if (!touchOnly) return;
-
-  document.documentElement.classList.add('is-touch-device');
-
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('[data-desktop-only]').forEach(function(el) {
-      el.setAttribute('aria-disabled', 'true');
-      el.addEventListener('click', function(ev) { ev.preventDefault(); });
-    });
-  });
-})();
-</script>
 </head>
 <body>
 
 <!-- ════════════════════════════════════════════ NAV ════════════════════════════════════════════ -->
 <nav>
-  <span class="brand">WEB SLINGER</span>
+  <span class="brand">.SPIDER-NaN</span>
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="inicio" data-i18n="tab.inicio">Inicio</button>
     <button class="tab-btn" data-tab="loop1" data-i18n="tab.loop1">Loop 1 — Core</button>
@@ -822,30 +812,46 @@
   </div>
   <div class="nav-links">
     <a href="#hero-inicio" class="nav-link inicio-link active" data-i18n="nav.inicio">Inicio</a>
+    <a href="#arquitectura" class="nav-link inicio-link" data-i18n="nav.arquitectura">Arquitectura</a>
     <a href="#inicio-explora" class="nav-link inicio-link" data-i18n="nav.explorar">Explorar</a>
     <a href="#hero" class="nav-link loop1-link" data-i18n="nav.inicio">Inicio</a>
     <a href="#prompt" class="nav-link loop1-link" data-i18n="nav.prompt">Prompt</a>
-    <a href="#arquitectura" class="nav-link loop1-link" data-i18n="nav.arquitectura">Arquitectura</a>
+    <a href="#metraje" class="nav-link loop1-link" data-i18n="nav.metraje">Metraje</a>
     <a href="#fases" class="nav-link loop1-link" data-i18n="nav.fases">Fases</a>
     <a href="#iteracion" class="nav-link loop1-link" data-i18n="nav.iteracion">Iteración</a>
     <a href="#metricas" class="nav-link loop1-link" data-i18n="nav.metricas">Métricas</a>
     <a href="#referencia" class="nav-link loop1-link" data-i18n="nav.referencia">Referencia</a>
-    <a href="#capturas" class="nav-link loop1-link" data-i18n="nav.capturas">Capturas</a>
     <a href="#hero2" class="nav-link loop2-link" data-i18n="nav.inicio">Inicio</a>
+    <a href="#prompt2" class="nav-link loop2-link" data-i18n="nav.prompt">Prompt</a>
     <a href="#fases2" class="nav-link loop2-link" data-i18n="nav.fases">Fases</a>
     <a href="#iteracion2" class="nav-link loop2-link" data-i18n="nav.iteracion">Iteración</a>
     <a href="#metricas2" class="nav-link loop2-link" data-i18n="nav.metricas">Métricas</a>
     <a href="#evidencia2" class="nav-link loop2-link" data-i18n="nav.evidencia">Evidencia</a>
     <a href="#hero-definitive" class="nav-link definitive-link" data-i18n="nav.inicio">Inicio</a>
+    <a href="#menu" class="nav-link definitive-link" data-i18n="nav.menu">Menú</a>
     <a href="#arcade" class="nav-link definitive-link" data-i18n="nav.arcade">Arcade</a>
     <a href="#frases" class="nav-link definitive-link" data-i18n="nav.frases">Frases</a>
     <a href="#sky" class="nav-link definitive-link" data-i18n="nav.cielo">Cielo</a>
     <a href="#config" class="nav-link definitive-link" data-i18n="nav.config">Config</a>
-    <a href="#compare" class="nav-link definitive-link" data-i18n="nav.comparar">Antes/Después</a>
+    <a href="#cierre" class="nav-link definitive-link" data-i18n="nav.cierre">Cierre</a>
   </div>
-  <div class="lang-switch" role="group" aria-label="Language selector / Selector de idioma">
-    <button type="button" class="lang-btn active" data-lang="es" aria-pressed="true">ES</button>
-    <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+  <div class="nav-actions">
+    <a class="nav-social" href="https://x.com/adriaansaeez" target="_blank" rel="noopener" aria-label="X — @adriaansaeez">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117l11.966 15.644Z"/></svg>
+    </a>
+    <button id="sound-toggle" class="btn-sound" type="button"
+      aria-label="Silenciar el sonido de fondo" aria-pressed="false">
+      <svg class="ico ico-on" width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6h2.9L11 4.3v11.4L6.9 12.4H4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.7 7.6a3.9 3.9 0 0 1 0 4.8M16 5.4a7 7 0 0 1 0 9.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><svg class="ico ico-off" width="19" height="19" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 7.6h2.9L11 4.3v11.4L6.9 12.4H4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.2 8.1l4 3.8M18.2 8.1l-4 3.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span class="label vh">SONIDO ON</span>
+    </button>
+    <div class="lang-switch" role="group" aria-label="Language selector / Selector de idioma">
+      <button type="button" class="lang-btn active" data-lang="es" aria-pressed="true">ES</button>
+      <button type="button" class="lang-btn" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+    <a class="btn-play btn-play--nav" href="game/">
+      <span data-i18n="inicio.play">Jugar</span>
+      <span class="arrow" aria-hidden="true"><svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 6h14M10.5 1.5 15.5 6l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </a>
   </div>
 </nav>
 
@@ -853,190 +859,77 @@
 <div class="tab-panel active" id="panel-inicio">
 
 <!-- ════════════════════════════════════════════ HERO ════════════════════════════════════════════ -->
-<section class="hero" id="hero-inicio">
-  <video class="hero-video" src="game/assets/hero-video.mov" autoplay muted loop playsinline preload="auto"></video>
-  <div class="hero-overlay"></div>
-  <div class="hero-content">
-    <div class="hero-tag" data-i18n="hero.tag">NaN Gauntlet Loop · Agosto 2026</div>
-    <h1>Spider <span>NaN</span></h1>
-    <p class="subtitle" data-i18n-html="hero.subtitle.inicio">Juego de balanceo con telarañas en Three.js, creado con un gauntlet loop de agentes IA: <strong>Opus orquesta</strong>, <strong>DeepSeek V4 Flash construye</strong>, <strong>GPT-5.5 critica</strong>.</p>
-    <div class="hero-meta">
-      <span data-i18n-html="hero.meta.orchestrator"><strong>Opus 5</strong> orquestador</span>
-      <span data-i18n-html="hero.meta.builder"><strong>DeepSeek V4 Flash</strong> constructor</span>
-      <span><strong>GPT-5.5</strong> critic</span>
-    </div>
-    <div class="hero-badges">
-      <span class="badge ok">120 fps</span>
-      <span class="badge ok" data-i18n="badge.determinism">Determinismo PASS</span>
-      <span class="badge ok" data-i18n="badge.consoleclean">Console limpio</span>
-      <span class="badge info">Three.js + TypeScript</span>
-    </div>
-    <a class="hero-play-btn" href='game/' data-desktop-only>
-      <span data-i18n="inicio.play">Jugar</span>
-      <span class="desktop-only-tag" data-i18n="play.desktopOnly">Solo escritorio</span>
-      <span class="arrow" aria-hidden="true">▸</span>
-    </a>
-    <p class="touch-note" data-i18n="play.touchNote">Este dispositivo es táctil: el juego necesita teclado y ratón. Ábrelo en un ordenador para jugar.</p>
-    <button id="sound-toggle" class="hero-sound-btn" type="button"
-      aria-label="Silenciar el sonido de fondo" aria-pressed="false">
-      <span class="icon" aria-hidden="true">🔊</span>
-      <span class="label">SONIDO ON</span>
-    </button>
+<section class="hero hero-cover" id="hero-inicio">
+  <div class="hero-tint" aria-hidden="true"></div>
+  <div class="hero-media">
+    <video class="hero-video" src="assets/hero-video.mov" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>
   </div>
-  <div class="scroll-hint">↓</div>
+  <div class="hero-content">
+    <h1>.Spider-<span>NaN</span></h1>
+    <p class="subtitle" data-i18n-html="hero.subtitle.inicio">Juego de balanceo con telarañas en Three.js, creado con un gauntlet loop de agentes IA: <strong>Opus orquesta</strong>, <strong>DeepSeek V4 Flash construye</strong>, <strong>GPT-5.5 critica</strong>.</p>
+    <div class="hero-actions">
+      <a class="btn-play" href='../'>
+        <span data-i18n="inicio.play">Jugar</span>
+        <span class="arrow" aria-hidden="true"><svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 6h14M10.5 1.5 15.5 6l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </a>
+    </div>
+
+  </div>
+  <div class="powered">
+      <span class="powered-label">Powered by</span>
+      <a class="powered-mark" href="https://nan.builders" rel="noopener" aria-label="NaN"><svg class="nan-mark" viewBox="0 0 220 33" role="img" aria-label="NaN" xmlns="http://www.w3.org/2000/svg"><path d="M33.7896 21.6821V11.3621H43.2171C53.4443 11.3621 53.5294 11.3518 54.6592 9.9151C55.0409 9.4276 55.1983 8.85756 55.1983 7.94962C55.1983 6.8405 55.0822 6.55161 54.3368 5.80618C53.8622 5.33158 53.1503 4.86213 52.7505 4.76154C52.2836 4.64547 48.933 5.13812 43.2249 6.16729C38.3834 7.03653 34.2797 7.75101 34.1069 7.75101C33.8696 7.75101 33.7896 6.79149 33.7896 4.00063V0.24766L43.7846 0.325041C53.4056 0.397263 53.826 0.420477 54.9893 0.959563C56.3977 1.60956 57.8266 2.99726 58.6288 4.49844C59.1911 5.55082 59.1963 5.65142 59.1963 18.7133V31.868L46.4929 31.9351L33.7896 32.0021V21.6821ZM53.6403 27.8055C55.4562 26.8744 55.7141 26.1135 55.7141 21.6796C55.7141 17.2431 55.4588 16.4899 53.6326 15.5433C52.5209 14.9681 52.3249 14.9526 46.2995 15.0274C39.41 15.1099 38.8632 15.2312 37.9914 16.8484C37.4368 17.8802 37.1918 23.8153 37.638 25.4712C38.3422 28.0918 39.1805 28.3601 46.6967 28.3756C52.2294 28.3859 52.5647 28.3575 53.6403 27.8055ZM0.108333 31.5017C0.0490073 31.4424 0 24.3337 0 15.7032V0.0129386H6.01506C13.1779 0.0129386 13.8537 0.162541 15.8811 2.18734C17.9678 4.27662 18.0555 4.72801 18.0555 13.4669V20.898L18.7958 21.7286C19.7605 22.8042 21.1327 22.8454 22.1515 21.8266L22.8273 21.1534L22.8995 10.5754L22.9718 4.19617e-05L26.6396 0.0696848L30.3075 0.141906V11.749C30.3075 24.7619 30.2688 25.0895 28.4761 27.5089C26.5003 30.1811 23.8797 31.5224 20.6091 31.5353C16.0952 31.5559 12.6801 28.5226 11.9837 23.872C11.8831 23.2143 12.1617 20.8671 12.7498 17.3798C13.7841 11.2538 13.8537 10.075 13.2476 9.05101C12.3164 7.47502 10.0647 6.96947 8.44224 7.97284C6.8353 8.96589 6.8482 8.87561 6.70633 20.7561L6.57736 31.5714L3.39701 31.5894C1.64821 31.6023 0.167658 31.5611 0.108333 31.5017ZM62.2244 15.9405L62.2915 0.141906L66.5474 0.0800014L70.8034 0.0206763L75.423 5.56114C77.9663 8.60994 80.1381 11.1042 80.2542 11.1042C80.3702 11.1042 80.4966 8.63831 80.5353 5.62304L80.6049 0.141906H82.1293H83.6512L83.6073 15.876L83.5661 31.6101L79.3617 31.6797L75.1573 31.7519L71.1645 26.9079C68.9695 24.246 66.9447 21.7518 66.6661 21.3649C66.3875 20.9805 66.0728 20.6607 65.9671 20.6555C65.8613 20.6504 65.7736 23.1446 65.7736 26.1934V31.739H63.9655H62.1574L62.2244 15.9405Z" fill="currentColor"/><g transform="translate(84,0) scale(0.9,1) translate(-84,0)"><path d="M209.715 32.0853C208.459 32.0853 207.352 31.9488 206.396 31.6756C205.44 31.4297 204.593 31.1019 203.856 30.6922L203.897 27.3731C204.58 27.8102 205.426 28.22 206.437 28.6024C207.475 28.9575 208.541 29.1351 209.633 29.1351C210.644 29.1351 211.491 28.9985 212.174 28.7253C212.857 28.4248 213.376 28.0151 213.731 27.4961C214.086 26.9497 214.264 26.3351 214.264 25.6522C214.264 25.1331 214.154 24.6824 213.936 24.3C213.744 23.8902 213.403 23.4941 212.911 23.1117C212.42 22.7019 211.723 22.2375 210.822 21.7185C209.865 21.1175 209.06 20.5302 208.404 19.9565C207.748 19.3556 207.257 18.7 206.929 17.9897C206.601 17.2795 206.437 16.46 206.437 15.5312C206.464 14.2746 206.765 13.1819 207.339 12.2531C207.94 11.3243 208.786 10.6004 209.879 10.0814C210.972 9.56238 212.242 9.30287 213.69 9.30287C214.946 9.30287 216.107 9.46677 217.173 9.79458C218.265 10.0951 219.208 10.4365 220 10.819L218.853 13.6873C218.17 13.3595 217.405 13.059 216.558 12.7858C215.739 12.4853 214.769 12.3351 213.649 12.3351C212.556 12.3351 211.682 12.6219 211.026 13.1956C210.371 13.7419 210.043 14.4658 210.043 15.3673C210.043 15.8317 210.139 16.2551 210.33 16.6375C210.521 16.9926 210.863 17.3751 211.354 17.7848C211.846 18.1673 212.529 18.6317 213.403 19.178C214.277 19.7243 215.056 20.2707 215.739 20.817C216.449 21.3634 216.995 21.9917 217.378 22.7019C217.787 23.4122 217.979 24.2863 217.951 25.3244C217.951 26.7995 217.61 28.0424 216.927 29.0531C216.244 30.0639 215.288 30.8288 214.059 31.3478C212.829 31.8395 211.382 32.0853 209.715 32.0853Z" fill="currentColor"/><path d="M190.829 31.6756L195.5 9.71263H198.41L197.959 13.7692H198.164C198.71 13.0043 199.284 12.2941 199.885 11.6385C200.513 10.9556 201.196 10.3956 201.934 9.95848C202.698 9.52141 203.573 9.30287 204.556 9.30287C204.938 9.30287 205.321 9.33019 205.703 9.38482C206.086 9.41214 206.441 9.48043 206.769 9.5897L205.99 12.8268C205.635 12.7448 205.294 12.6902 204.966 12.6629C204.665 12.6082 204.337 12.5809 203.982 12.5809C203.026 12.5809 202.138 12.8541 201.319 13.4004C200.527 13.9195 199.816 14.616 199.188 15.4902C198.56 16.3643 198.027 17.3341 197.59 18.3995C197.153 19.4648 196.812 20.5439 196.566 21.6365L194.435 31.6756H190.829Z" fill="currentColor"/><path d="M181.301 32.0853C179.716 32.0853 178.35 31.7575 177.203 31.1019C176.083 30.419 175.222 29.4766 174.621 28.2746C174.048 27.0453 173.761 25.5975 173.761 23.9312C173.761 22.1829 174.007 20.4483 174.499 18.7273C174.99 17.0063 175.701 15.4356 176.629 14.0151C177.558 12.5946 178.678 11.4609 179.989 10.6141C181.301 9.73995 182.789 9.30287 184.456 9.30287C186.45 9.30287 187.939 9.7536 188.922 10.6551C189.933 11.5292 190.438 12.7585 190.438 14.3429C190.438 15.4356 190.192 16.46 189.701 17.4161C189.236 18.3448 188.512 19.1643 187.529 19.8746C186.545 20.5848 185.275 21.1448 183.718 21.5546C182.188 21.9644 180.344 22.1692 178.186 22.1692H177.49C177.462 22.4424 177.435 22.7156 177.408 22.9887C177.408 23.2619 177.408 23.5214 177.408 23.7673C177.408 25.4336 177.777 26.7448 178.514 27.7009C179.279 28.6297 180.44 29.0941 181.997 29.0941C182.981 29.0941 183.909 28.9439 184.783 28.6434C185.685 28.3429 186.668 27.9331 187.734 27.4141L187.693 30.4873C186.682 30.9517 185.699 31.3341 184.742 31.6346C183.786 31.9351 182.639 32.0853 181.301 32.0853ZM178.35 19.26C179.907 19.26 181.328 19.1234 182.612 18.8502C183.923 18.5497 184.961 18.058 185.726 17.3751C186.518 16.6921 186.914 15.7907 186.914 14.6707C186.914 13.9878 186.696 13.4278 186.259 12.9907C185.821 12.5263 185.139 12.2941 184.21 12.2941C183.39 12.2941 182.571 12.5673 181.751 13.1136C180.959 13.6599 180.235 14.4521 179.58 15.4902C178.924 16.5282 178.405 17.7848 178.022 19.26H178.35Z" fill="currentColor"/><path d="M158.404 32.0853C157.312 32.0853 156.342 31.8122 155.495 31.2658C154.675 30.7195 154.02 29.9 153.528 28.8073C153.064 27.7146 152.832 26.3487 152.832 24.7097C152.832 23.098 152.982 21.5409 153.282 20.0385C153.61 18.536 154.061 17.1429 154.634 15.859C155.235 14.5478 155.959 13.4141 156.806 12.458C157.653 11.4746 158.609 10.7097 159.674 10.1634C160.767 9.61702 161.942 9.34384 163.198 9.34384C164.127 9.34384 164.919 9.52141 165.575 9.87653C166.258 10.2316 166.832 10.696 167.296 11.2697C167.76 11.816 168.129 12.4307 168.402 13.1136H168.566C168.648 12.4853 168.73 11.8843 168.812 11.3107C168.894 10.737 168.99 10.1634 169.099 9.5897C169.208 8.98872 169.331 8.36043 169.468 7.70482L171.025 0.534077H174.549L167.952 31.6756H165.042L165.493 27.619H165.329C164.728 28.4385 164.073 29.1897 163.362 29.8726C162.652 30.5556 161.887 31.1019 161.068 31.5117C160.275 31.8941 159.388 32.0853 158.404 32.0853ZM159.715 29.0941C160.289 29.0941 160.876 28.9439 161.477 28.6434C162.078 28.3156 162.652 27.8785 163.198 27.3322C163.772 26.7585 164.291 26.0892 164.755 25.3244C165.247 24.5595 165.671 23.7126 166.026 22.7839C166.408 21.8551 166.695 20.8853 166.886 19.8746C167.105 18.8365 167.214 17.7712 167.214 16.6785C167.214 15.3946 166.914 14.3565 166.313 13.5643C165.739 12.7448 164.783 12.3351 163.444 12.3351C162.625 12.3351 161.86 12.5673 161.15 13.0317C160.467 13.496 159.838 14.138 159.265 14.9575C158.691 15.7497 158.199 16.6785 157.79 17.7439C157.38 18.8092 157.066 19.9429 156.847 21.1448C156.629 22.3195 156.519 23.5214 156.519 24.7507C156.519 26.1985 156.793 27.2912 157.339 28.0287C157.885 28.739 158.677 29.0941 159.715 29.0941Z" fill="currentColor"/><path d="M143.405 31.6756L150.043 0.534077H153.649L147.011 31.6756H143.405Z" fill="currentColor"/><path d="M134.881 31.6756L139.553 9.71263H143.158L138.487 31.6756H134.881ZM142.421 6.0658C141.875 6.0658 141.41 5.90189 141.028 5.57409C140.673 5.24628 140.495 4.78189 140.495 4.18091C140.495 3.68921 140.591 3.25213 140.782 2.86969C140.973 2.45994 141.246 2.13213 141.601 1.88628C141.984 1.64042 142.421 1.51749 142.913 1.51749C143.541 1.51749 144.005 1.6814 144.306 2.0092C144.634 2.33701 144.797 2.77408 144.797 3.32042C144.797 4.16726 144.552 4.83652 144.06 5.32823C143.596 5.81994 143.049 6.0658 142.421 6.0658Z" fill="currentColor"/><path d="M120.221 32.0853C119.183 32.0853 118.268 31.8805 117.475 31.4707C116.711 31.0609 116.11 30.46 115.672 29.6678C115.263 28.8756 115.058 27.8922 115.058 26.7175C115.058 26.0892 115.099 25.4883 115.181 24.9146C115.29 24.3409 115.399 23.74 115.509 23.1117L118.377 9.71263H122.024L119.114 23.5214C118.978 24.1224 118.869 24.6551 118.787 25.1195C118.732 25.5566 118.705 25.9526 118.705 26.3078C118.705 27.1546 118.91 27.8375 119.319 28.3566C119.729 28.8483 120.398 29.0941 121.327 29.0941C122.229 29.0941 123.171 28.7663 124.154 28.1107C125.165 27.4551 126.108 26.4034 126.982 24.9556C127.856 23.5078 128.553 21.5819 129.072 19.178L131.079 9.71263H134.603L129.932 31.6756H127.023L127.473 27.619H127.31C126.818 28.2746 126.231 28.9575 125.548 29.6678C124.865 30.3507 124.086 30.9244 123.212 31.3888C122.338 31.8531 121.341 32.0853 120.221 32.0853Z" fill="currentColor"/><path d="M102.528 32.0853C101.6 32.0853 100.78 31.9078 100.07 31.5527C99.3869 31.1975 98.8132 30.7331 98.3488 30.1595C97.8844 29.5858 97.5156 28.9712 97.2425 28.3156H97.0376L95.7264 31.6756H93.022L99.6191 0.534077H103.225L101.668 7.9097C101.477 8.83848 101.272 9.7536 101.053 10.6551C100.835 11.5292 100.643 12.2668 100.48 12.8678C100.316 13.4414 100.206 13.7556 100.152 13.8102H100.316C100.944 12.9907 101.6 12.2531 102.282 11.5975C102.965 10.9146 103.703 10.3682 104.495 9.95848C105.315 9.54872 106.202 9.34384 107.159 9.34384C108.279 9.34384 109.262 9.61702 110.109 10.1634C110.956 10.7097 111.611 11.5292 112.076 12.6219C112.567 13.7146 112.813 15.0668 112.813 16.6785C112.813 18.2629 112.663 19.82 112.362 21.3497C112.062 22.8522 111.611 24.259 111.01 25.5702C110.437 26.8541 109.726 27.9878 108.88 28.9712C108.06 29.9546 107.118 30.7195 106.052 31.2658C104.987 31.8122 103.812 32.0853 102.528 32.0853ZM102.201 29.0941C103.02 29.0941 103.785 28.8619 104.495 28.3975C105.205 27.9331 105.847 27.3048 106.421 26.5126C106.995 25.6931 107.473 24.7507 107.855 23.6853C108.265 22.62 108.579 21.5 108.798 20.3253C109.016 19.1234 109.125 17.9078 109.125 16.6785C109.125 15.2307 108.852 14.1517 108.306 13.4414C107.787 12.7038 106.995 12.3351 105.929 12.3351C105.356 12.3351 104.768 12.499 104.167 12.8268C103.566 13.1273 102.979 13.5643 102.405 14.138C101.859 14.6843 101.34 15.3399 100.848 16.1048C100.357 16.8697 99.9195 17.7165 99.5371 18.6453C99.182 19.5741 98.8952 20.5575 98.6766 21.5956C98.4854 22.6063 98.3898 23.658 98.3898 24.7507C98.3898 26.0346 98.7039 27.0863 99.3322 27.9058C99.9605 28.698 100.917 29.0941 102.201 29.0941Z" fill="currentColor"/><path d="M86.4203 32.2492C85.7374 32.2492 85.2184 32.058 84.8632 31.6756C84.5081 31.3205 84.3306 30.8014 84.3306 30.1185C84.3306 29.5175 84.4398 28.9575 84.6584 28.4385C84.8769 27.9195 85.2184 27.5097 85.6828 27.2092C86.1472 26.8814 86.7345 26.7175 87.4447 26.7175C88.0184 26.7175 88.4828 26.9087 88.8379 27.2912C89.2203 27.6463 89.3979 28.179 89.3706 28.8892C89.3706 29.4356 89.2613 29.9683 89.0428 30.4873C88.8242 31.0063 88.4964 31.4297 88.0594 31.7575C87.6223 32.0853 87.0759 32.2492 86.4203 32.2492Z" fill="currentColor"/></g></svg></a>
+    </div>
 </section>
 
 <main>
 <!-- ════════════════════════════════════════════ INTRO ══════════════════════════════════════════ -->
 <section id="inicio-intro" class="reveal">
-  <div class="section-label" data-i18n="label.about">Sobre el proyecto</div>
-  <h2 data-i18n="intro.h2">Diario de Construcción</h2>
-  <p data-i18n-html="intro.p1"><strong>Spider-NaN</strong> es un juego de balanceo con telarañas construido en <strong>Three.js</strong> desde cero, usando un <strong>gauntlet loop</strong>: un ciclo continuo de <em>build → critique → fix</em> en el que tres agentes de IA colaboran.</p>
+  <div class="sec-head">
+    <h2 data-i18n="intro.h2">Diario de Construcción</h2>
+  </div>
+  <p data-i18n-html="intro.p1"><strong>.Spider-NaN</strong> es un juego de balanceo con telarañas construido en <strong>Three.js</strong> desde cero, usando un <strong>gauntlet loop</strong>: un ciclo continuo de <em>build → critique → fix</em> en el que tres agentes de IA colaboran.</p>
   <p data-i18n-html="intro.p2"><strong>Opus</strong> actúa como orquestador y toma las decisiones arquitectónicas. <strong>DeepSeek V4 Flash</strong> construye cada sistema: ciudad procedural, física de balanceo, cámara, efectos y pulido visual. <strong>GPT-5.5</strong> critica la implementación contra material de referencia real, frame a frame, y rechaza cualquier resultado que no alcance calidad AAA.</p>
   <p data-i18n="intro.p3">Este diario documenta cada loop, sus iteraciones y las evidencias de rendimiento y determinismo que validaron el resultado final.</p>
-  <p class="desktop-note" data-i18n="intro.desktopOnly">Nota: el juego se controla con teclado y ratón (WASD + puntero capturado). No hay controles táctiles, así que sólo se puede jugar en un ordenador de escritorio o portátil.</p>
-</section>
-
-<!-- ════════════════════════════════════════════════ COMPARA VIDEOS ════════════════════════════════════════════════ -->
-<section id="inicio-compara" class="reveal">
-  <div class="section-label" data-i18n="label.compare.videos">Comparación en video</div>
-  <h2 data-i18n="inicio.compara.h2">Antes y Después — en movimiento</h2>
-  <p data-i18n="inicio.compara.p">El primer metraje registrado del juego frente al resultado definitivo tras el gauntlet loop: la misma cámara persiguiendo al mismo héroe, pero en una ciudad que dejó de ser cajas grises.</p>
-
-  <div class="compare-grid compare-split video-compare">
-    <figure>
-      <video src="game/assets/old-version-video.mov" autoplay muted loop playsinline preload="metadata"></video>
-      <figcaption data-i18n="inicio.compara.left">Versión inicial — Primer Loop</figcaption>
-    </figure>
-    <span class="vs-divider" aria-hidden="true">VS</span>
-    <figure>
-      <video src="game/assets/hero-video.mov" autoplay muted loop playsinline preload="metadata"></video>
-      <figcaption data-i18n="inicio.compara.right">Versión definitiva — Post-Gauntlet</figcaption>
-    </figure>
-  </div>
-</section>
-
-<!-- ════════════════════════════════════════════ EXPLORA ════════════════════════════════════════ -->
-<section id="inicio-explora" class="reveal">
-  <div class="section-label" data-i18n="label.explore">Explorar</div>
-  <h2 data-i18n="explora.h2">Explora el Proceso</h2>
-  <p data-i18n="explora.p">Dos ciclos completos de construcción, documentados fase por fase.</p>
-
-  <div class="cta-stack">
-    <a class="cta-card primary" href='game/' data-desktop-only>
-      <span>
-        <h3 data-i18n="inicio.play">Jugar</h3>
-        <span class="desktop-only-tag" data-i18n="play.desktopOnly">Solo escritorio</span>
-        <p class="meta" data-i18n="inicio.play.desc">Lanza el juego directamente: balanceo con telarañas en la ciudad procedural.</p>
-        <p class="touch-note" data-i18n="play.touchNote">Este dispositivo es táctil: el juego necesita teclado y ratón. Ábrelo en un ordenador para jugar.</p>
-      </span>
-      <span class="arrow" aria-hidden="true">▸</span>
-    </a>
-    <button class="cta-card" type="button" data-tab="loop1">
-      <span>
-        <h3>Loop 1 — Core</h3>
-        <p class="meta" data-i18n-html="cta.loop1.desc">Ciudad procedural Manhattan, física de balanceo con telaraña, cámara chase, máquina de estados y pipeline de evidencia automatizado.</p>
-      </span>
-      <span class="arrow">→</span>
-    </button>
-    <button class="cta-card" type="button" data-tab="loop2">
-      <span>
-        <h3>Loop 2 — Visual</h3>
-        <p class="meta" data-i18n-html="cta.loop2.desc">Modelado de edificios authored, iluminación día/noche fotográfica, animaciones articuladas del héroe y efectos visuales.</p>
-      </span>
-      <span class="arrow">→</span>
-    </button>
-  </div>
-</section>
-</main>
-</div><!-- /tab-panel inicio -->
-
-<!-- ════════════════════════════════════════════ LOOP 1: CORE ════════════════════════════════════════════ -->
-<div class="tab-panel" id="panel-loop1">
-
-<!-- ════════════════════════════════════════════ HERO ════════════════════════════════════════════ -->
-<section class="hero" id="hero">
-  <div class="hero-tag" data-i18n="hero.tag">NaN Gauntlet Loop · Agosto 2026</div>
-  <h1>Spider <span>NaN</span></h1>
-  <p class="subtitle" data-i18n-html="hero.subtitle.loop1">Juego de balanceo con telarañas en Three.js, construido con Gauntlet Loop: Opus orquestando, DeepSeek V4 Flash construyendo, GPT-5.5 criticando.</p>
-  <div class="hero-meta">
-    <span data-i18n-html="hero.meta.orchestrator"><strong>Opus 5</strong> orquestador</span>
-    <span data-i18n-html="hero.meta.builder"><strong>DeepSeek V4 Flash</strong> constructor</span>
-    <span><strong>GPT-5.5</strong> critic</span>
-  </div>
-  <div class="hero-badges">
-    <span class="badge ok">120 fps</span>
-    <span class="badge ok" data-i18n="badge.determinism">Determinismo PASS</span>
-    <span class="badge ok" data-i18n="badge.consoleclean">Console limpio</span>
-    <span class="badge info">Three.js + TypeScript</span>
-  </div>
-  <div class="scroll-hint">↓</div>
-</section>
-
-<!-- ════════════════════════════════════════════ PROMPT ══════════════════════════════════════════ -->
-<main>
-<section id="prompt" class="reveal">
-  <div class="section-label">01</div>
-  <h2 data-i18n="prompt.h2">El Prompt</h2>
-  <p data-i18n="prompt.intro">Prompt adaptado del Gauntlet Challenge, enfocado en un juego de Spider-Man en Three.js con ciclo de builder + critic agents.</p>
-
-  <div class="prompt-block" data-i18n-attr="data-label:promptblock.label" data-label="PROMPT INICIAL">
-    <div class="prompt-text">I want you to build <span class="hl">a Spider-Man web-swinging game</span> at the level of the most recent Spider-Man games. It should be utterly perfect, visually beautiful, with every single thing done at an <span class="hl">AAA quality</span>—from physics to feel to city density.
-
-<span class="prompt-annotation" data-i18n="prompt.annot1">El prompt pide calidad AAA pero con un scope acotado: web-swinging, no un juego completo.</span>
-
-Fan out sub-agents and have sub-agents tackle each one individually so that the game is perfect. You should loop on each item and have a <span class="hl">separate sub-agent check it visually</span> to ensure it looks triple A. That separate sub-agent should be a <span class="hl">really harsh critic</span>, and if it doesn't look triple A, it should keep going.
-
-<span class="prompt-annotation" data-i18n="prompt.annot2">El patrón Gauntlet: builder + critic separados. El critic es "really harsh" — no aprueba mediocridad.</span>
-
-Don't stop until each sub-agent is utterly wowed with the quality when compared with the <span class="hl">actual Spider-Man game</span>. It should literally compare them side by side and say which one looks better. Do this in <span class="hl">ThreeJS</span>. Loop until it's utterly perfect. Fan out sub-agents and <span class="hl">ultracode</span>.</div>
-
-    <span class="prompt-annotation" style="margin-top: 16px;" data-i18n="prompt.annot3">La clave: comparar contra material de referencia real (Spider-Man 2 PS5), no contra una opinión subjetiva.</span>
-  </div>
 </section>
 
 <!-- ════════════════════════════════════════════ ARQUITECTURA ══════════════════════════════════════════ -->
 <section id="arquitectura" class="reveal">
-  <div class="section-label">02</div>
-  <h2 data-i18n="arch.h2">Arquitectura del Loop</h2>
+  <div class="sec-head">
+    <h2 data-i18n="arch.h2">Arquitectura de Gauntlet Loop</h2>
+  </div>
   <p data-i18n-html="arch.intro">El Gauntlet Loop es un ciclo continuo: <strong>construir → criticar → corregir → evidencia</strong>. Tres modelos de IA trabajan en tandem: Opus orquesta, DeepSeek V4 Flash construye, GPT-5.5 critica.</p>
 
   <div class="arch-diagram">
-    <div class="arch-flow">
-      <div class="arch-node">
-        <div class="icon icon-human">👤</div>
-        <div class="label" data-i18n="arch.node.human.label">Humano</div>
-        <div class="sub" data-i18n="arch.node.human.sub">Define visión</div>
-      </div>
-      <div class="arch-arrow">→</div>
-      <div class="arch-node">
-        <div class="icon icon-prompt">📝</div>
-        <div class="label">Prompt</div>
-        <div class="sub" data-i18n="arch.node.prompt.sub">Especificación</div>
-      </div>
-      <div class="arch-arrow">→</div>
-      <div class="arch-node">
-        <div class="icon icon-build">🔧</div>
-        <div class="label">DeepSeek V4 Flash</div>
-        <div class="sub" data-i18n="arch.node.builder.sub">Constructor</div>
-      </div>
-      <div class="arch-arrow">→</div>
-      <div class="arch-node">
-        <div class="icon icon-critic">🔍</div>
-        <div class="label">GPT-5.5</div>
-        <div class="sub">Critic (harsh)</div>
-      </div>
-      <div class="arch-arrow">→</div>
-      <div class="arch-node">
-        <div class="icon icon-evidence">📊</div>
-        <div class="label" data-i18n="arch.node.evidence.label">Evidencia</div>
-        <div class="sub" data-i18n="arch.node.evidence.sub">Capturas + métricas</div>
-      </div>
-      <div class="arch-arrow">↺</div>
-    </div>
+      <svg viewBox="0 0 1012 214" role="img" aria-labelledby="archTitle" class="arch-svg">
+      <title id="archTitle">El ciclo: humano, prompt, constructor, crítico, evidencia — y vuelta al constructor.</title>
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7">
+      <g transform="translate(66,10)" stroke="#101010"><path d="M12 20.5c0-3.6 2.9-6.5 6.5-6.5h3c3.6 0 6.5 2.9 6.5 6.5"/><path d="M20 4.5a4.6 4.6 0 1 1 0 9.2 4.6 4.6 0 0 1 0-9.2"/></g>
+      <g transform="translate(276,10)" stroke="#101010"><path d="M9.5 3.5h14l7 7v18a2 2 0 0 1-2 2h-19a2 2 0 0 1-2-2v-23a2 2 0 0 1 2-2z"/><path d="M23 3.5v7h7M13.5 17h13M13.5 22.5h13M13.5 28h8"/></g>
+      <g transform="translate(486,10)" stroke="#101010"><path d="M6 30.5h28M9.5 22h9v8.5h-9z"/><path d="M21.5 22h9v8.5h-9zM15 12.5h9V21h-9z"/></g>
+      <g transform="translate(696,10)" stroke="#cc2018"><path d="M17.5 5.5a10 10 0 1 1 0 20 10 10 0 0 1 0-20z"/><path d="M25 23.5l8.5 8.5M13 15.5h9M17.5 11v9"/></g>
+      <g transform="translate(906,10)" stroke="#101010"><path d="M5.5 31.5h29"/><path d="M11 31.5v-9M18.5 31.5v-17M26 31.5v-12M33.5 31.5v-21"/></g>
+      </g>
+      <text x="86" y="72" text-anchor="middle" class="arch-label" fill="#101010" data-i18n="arch.node.human.label">Humano</text>
+      <text x="86" y="90" text-anchor="middle" class="arch-sub" data-i18n="arch.node.human.sub">Define visión</text>
+      <text x="296" y="72" text-anchor="middle" class="arch-label" fill="#101010">Prompt</text>
+      <text x="296" y="90" text-anchor="middle" class="arch-sub" data-i18n="arch.node.prompt.sub">Especificación</text>
+      <text x="506" y="72" text-anchor="middle" class="arch-label" fill="#101010">DeepSeek V4 Flash</text>
+      <text x="506" y="90" text-anchor="middle" class="arch-sub" data-i18n="arch.node.builder.sub">Constructor</text>
+      <text x="716" y="72" text-anchor="middle" class="arch-label" fill="#cc2018">GPT-5.5</text>
+      <text x="716" y="90" text-anchor="middle" class="arch-sub">Critic (harsh)</text>
+      <text x="926" y="72" text-anchor="middle" class="arch-label" fill="#101010" data-i18n="arch.node.evidence.label">Evidencia</text>
+      <text x="926" y="90" text-anchor="middle" class="arch-sub" data-i18n="arch.node.evidence.sub">Capturas + métricas</text>
+      <path d="M178 46h26M198 40l6 6-6 6" stroke="#c6c3bc" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M388 46h26M408 40l6 6-6 6" stroke="#c6c3bc" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M598 46h26M618 40l6 6-6 6" stroke="#c6c3bc" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M808 46h26M828 40l6 6-6 6" stroke="#c6c3bc" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M716 104v34a14 14 0 0 1-14 14H520a14 14 0 0 1-14-14v-30" stroke="#cc2018" stroke-width="1.7" fill="none" stroke-dasharray="1 6" stroke-linecap="round"/>
+      <path d="M500 114l6-8 6 8" stroke="#cc2018" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="611" y="176" text-anchor="middle" class="arch-loop" fill="#cc2018" data-i18n="arch.loop.label">FAIL → vuelve al constructor</text>
+      </svg>
   </div>
 
-  <h3 style="margin-top: 24px; margin-bottom: 12px;" data-i18n="arch.models.h3">Los 3 Modelos del Loop</h3>
+  <h4 data-i18n="arch.models.h3">Los 3 Modelos del Loop</h4>
   <div class="agents-grid">
     <div class="agent-card">
       <div class="name">Claude Opus 5</div>
@@ -1050,14 +943,14 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
     </div>
     <div class="agent-card">
       <div class="name">GPT-5.5</div>
-      <div class="role">Critic</div>
+      <div class="role critic">Critic</div>
       <div class="files" data-i18n-html="agent.gpt.files">Revisa contra material de referencia real<br>Identifica gaps concretos<br>Compara frame-a-frame<br>Rechaza mediocridad</div>
     </div>
   </div>
 
-  <div class="card" style="margin-top: 16px;">
+  <div class="card mt2">
     <h3 data-i18n="arch.stack.h3">Stack Tecnológico</h3>
-    <p style="font-size:13px; margin:0;" data-i18n-html="arch.stack.body">
+    <p data-i18n-html="arch.stack.body">
       <strong>Runtime:</strong> Three.js 0.169 · TypeScript · Vite<br>
       <strong>Plataforma:</strong> Orca (multi-agent IDE)<br>
       <strong>Evidencia:</strong> Playwright · Node.js capture pipeline<br>
@@ -1065,18 +958,112 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
     </p>
   </div>
 
-  <div class="card" style="margin-top: 16px;">
+  <div class="card mt2">
     <h3 data-i18n="arch.contract.h3">Contrato de Comunicación</h3>
-    <p data-i18n-html="arch.contract.body">Los agentes <strong>nunca importan entre sí</strong>. Se comunican únicamente a través de <code class="mono" style="color:var(--accent);">src/contracts/index.ts</code>, que define la interfaz <code class="mono">AnchorQuery</code>. Esto permite que la ciudad pueda ser reemplazada sin tocar el sistema de balanceo.</p>
+    <p data-i18n-html="arch.contract.body">Los agentes <strong>nunca importan entre sí</strong>. Se comunican únicamente a través de <code class="mono">src/contracts/index.ts</code>, que define la interfaz <code class="mono">AnchorQuery</code>. Esto permite que la ciudad pueda ser reemplazada sin tocar el sistema de balanceo.</p>
   </div>
 </section>
 
+<!-- ════════════════════════════════════════════════ COMPARA VIDEOS ════════════════════════════════════════════════ -->
+<section id="inicio-compara" class="reveal">
+  <div class="sec-head">
+    <h2 data-i18n="inicio.compara.h2">Antes y Después — en movimiento</h2>
+  </div>
+  <p data-i18n="inicio.compara.p">El primer metraje registrado del juego frente al resultado definitivo tras el gauntlet loop: la misma cámara persiguiendo al mismo héroe, pero en una ciudad que dejó de ser cajas grises.</p>
+
+  <div class="compare-grid compare-split video-compare">
+    <figure>
+      <span class="media"><video src="assets/old-version-video.mov" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video></span>
+      <figcaption data-i18n="inicio.compara.left">Versión inicial — Primer Loop</figcaption>
+    </figure>
+    <span class="vs-divider" aria-hidden="true">VS</span>
+    <figure>
+      <span class="media"><video src="assets/hero-video.mov" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video></span>
+      <figcaption data-i18n="inicio.compara.right">Versión definitiva — Post-Gauntlet</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ EXPLORA ════════════════════════════════════════ -->
+<section id="inicio-explora" class="reveal">
+  <div class="sec-head">
+    <h2 data-i18n="explora.h2">Explora el Proceso</h2>
+  </div>
+  <p data-i18n="explora.p">Dos ciclos completos de construcción, documentados fase por fase.</p>
+
+  <div class="cta-stack">
+    <a class="cta-card primary" href='../'>
+      <span>
+        <h3 data-i18n="inicio.play">Jugar</h3>
+        <p class="meta" data-i18n="inicio.play.desc">Lanza el juego directamente: balanceo con telarañas en la ciudad procedural.</p>
+      </span>
+      <span class="arrow" aria-hidden="true"><svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 6h14M10.5 1.5 15.5 6l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </a>
+    <button class="cta-card" type="button" data-tab="loop1">
+      <span>
+        <h3>Loop 1 — Core</h3>
+        <p class="meta" data-i18n-html="cta.loop1.desc">Ciudad procedural Manhattan, física de balanceo con telaraña, cámara chase, máquina de estados y pipeline de evidencia automatizado.</p>
+      </span>
+      <span class="arrow"><svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 6h14M10.5 1.5 15.5 6l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </button>
+    <button class="cta-card" type="button" data-tab="loop2">
+      <span>
+        <h3>Loop 2 — Visual</h3>
+        <p class="meta" data-i18n-html="cta.loop2.desc">Modelado de edificios authored, iluminación día/noche fotográfica, animaciones articuladas del héroe y efectos visuales.</p>
+      </span>
+      <span class="arrow"><svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 6h14M10.5 1.5 15.5 6l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    </button>
+  </div>
+</section>
+</main>
+</div><!-- /tab-panel inicio -->
+
+<!-- ════════════════════════════════════════════ LOOP 1: CORE ════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-loop1">
+
+<!-- ════════════════════════════════════════════ HERO ════════════════════════════════════════════ -->
+<section class="hero has-video" id="hero">
+  <div class="hero-media">
+    <video class="hero-video" src="assets/old-version-video.mov" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
+  </div>
+  <div class="hero-content">
+    <h1>Loop <span>1</span></h1>
+    <p class="subtitle" data-i18n-html="hero.subtitle.loop1">Juego de balanceo con telarañas en Three.js, construido con Gauntlet Loop: Opus orquestando, DeepSeek V4 Flash construyendo, GPT-5.5 criticando.</p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════ PROMPT ══════════════════════════════════════════ -->
+<main>
+<section id="prompt" class="reveal">
+  <div class="sec-head">
+    <h2 data-i18n="prompt.h2">El Prompt</h2>
+  </div>
+  <p data-i18n="prompt.intro">Prompt adaptado del Gauntlet Challenge, enfocado en un juego de Spider-Man en Three.js con ciclo de builder + critic agents.</p>
+
+  <div class="prompt-block" data-i18n-attr="data-label:promptblock.label" data-label="PROMPT INICIAL">
+    <div class="prompt-text">I want you to build <span class="hl">a Spider-Man web-swinging game</span> at the level of the most recent Spider-Man games. It should be utterly perfect, visually beautiful, with every single thing done at an <span class="hl">AAA quality</span>—from physics to feel to city density.
+
+<span class="prompt-annotation" data-i18n="prompt.annot1">El prompt pide calidad AAA pero con un scope acotado: web-swinging, no un juego completo.</span>
+
+Fan out sub-agents and have sub-agents tackle each one individually so that the game is perfect. You should loop on each item and have a <span class="hl">separate sub-agent check it visually</span> to ensure it looks triple A. That separate sub-agent should be a <span class="hl">really harsh critic</span>, and if it doesn't look triple A, it should keep going.
+
+<span class="prompt-annotation" data-i18n="prompt.annot2">El patrón Gauntlet: builder + critic separados. El critic es "really harsh" — no aprueba mediocridad.</span>
+
+Don't stop until each sub-agent is utterly wowed with the quality when compared with the <span class="hl">actual Spider-Man game</span>. It should literally compare them side by side and say which one looks better. Do this in <span class="hl">ThreeJS</span>. Loop until it's utterly perfect. Fan out sub-agents and <span class="hl">ultracode</span>.</div>
+
+    <span class="prompt-annotation" data-i18n="prompt.annot3">La clave: comparar contra material de referencia real (Spider-Man 2 PS5), no contra una opinión subjetiva.</span>
+  </div>
+</section>
+
+
+
 <!-- ════════════════════════════════════════════ FASES ══════════════════════════════════════════ -->
 <section id="fases" class="reveal">
-  <div class="section-label">03</div>
-  <h2 data-i18n="fases.h2">Fases de Construcción</h2>
+  <div class="sec-head">
+    <h2 data-i18n="fases.h2">Fases de Construcción</h2>
+  </div>
   <p data-i18n-html="fases.intro">La primera iteración del Gauntlet Loop. Cada fase fue construida por DeepSeek V4 Flash (constructor) y revisada por GPT-5.5 (critic), con Opus (orquestador) coordinando el flujo.</p>
-  <p style="font-size:12px; color:var(--dim); margin-top:4px;" data-i18n="fases.swipehint">← Desliza para ver todas las fases →</p>
+  <p class="hint" data-i18n="fases.swipehint">← Desliza para ver todas las fases →</p>
 
   <div class="timeline">
     <div class="timeline-item">
@@ -1143,48 +1130,49 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
 
 <!-- ════════════════════════════════════════════ ITERACIÓN ══════════════════════════════════════════ -->
 <section id="iteracion" class="reveal">
-  <div class="section-label">04</div>
-  <h2 data-i18n="iter.h2">El Ciclo de Iteración</h2>
+  <div class="sec-head">
+    <h2 data-i18n="iter.h2">El Ciclo de Iteración</h2>
+  </div>
   <p data-i18n-html="iter.intro">Cada sistema pasó por múltiples rondas de <strong>build → critique → fix</strong>. DeepSeek V4 Flash implementaba, GPT-5.5 comparaba contra el material de referencia y emitía un veredicto con evidencia, Opus coordinaba el flujo.</p>
 
   <div class="iter-flow">
     <span class="iter-step build" data-i18n="iterflow.build1">DeepSeek V4 Flash implementa</span>
-    <span class="iter-arrow">→</span>
+    <span class="iter-arrow"><svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 6h14M10.5 1.5 15.5 6l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="iter-step critique" data-i18n="iterflow.review1">GPT-5.5 revisa</span>
-    <span class="iter-arrow">→</span>
+    <span class="iter-arrow"><svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 6h14M10.5 1.5 15.5 6l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="iter-step critique" data-i18n="iterflow.fail1">FAIL + feedback</span>
-    <span class="iter-arrow">→</span>
+    <span class="iter-arrow"><svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 6h14M10.5 1.5 15.5 6l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="iter-step fix" data-i18n="iterflow.fix1">DeepSeek V4 Flash corrige</span>
-    <span class="iter-arrow">→</span>
+    <span class="iter-arrow"><svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 6h14M10.5 1.5 15.5 6l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="iter-step pass">PASS ✓</span>
   </div>
 
-  <div class="card-grid" style="margin-top: 20px;">
+  <div class="card-grid" class="card-grid mt2">
     <div class="card">
       <h3 data-i18n="iter.card.city.h3">Ciudad Procedural</h3>
       <div class="meta" data-i18n="iter.card.city.meta">2 iteraciones</div>
-      <p style="font-size:13px;" data-i18n-html="iter.card.city.body"><strong>ITER1:</strong> Overflow de capacidad en InstancedMesh, chunks sin optimizar. Critic found GPU buffer leak.<br><strong>ITER2:</strong> Chunk streaming corregido, budgets within limits. PASS.</p>
+      <p data-i18n-html="iter.card.city.body"><strong>ITER1:</strong> Overflow de capacidad en InstancedMesh, chunks sin optimizar. Critic found GPU buffer leak.<br><strong>ITER2:</strong> Chunk streaming corregido, budgets within limits. PASS.</p>
     </div>
     <div class="card">
       <h3>Traversal / Swing</h3>
       <div class="meta" data-i18n="iter.card.traversal.meta">4 iteraciones</div>
-      <p style="font-size:13px;" data-i18n-html="iter.card.traversal.body"><strong>ITER1:</strong> Péndulo inestable, release errático.<br><strong>ITER2:</strong> Fixed-step solver, mejora en attach.<br><strong>ITER4:</strong> Dash dirigido + dive funcionando. PASS.</p>
+      <p data-i18n-html="iter.card.traversal.body"><strong>ITER1:</strong> Péndulo inestable, release errático.<br><strong>ITER2:</strong> Fixed-step solver, mejora en attach.<br><strong>ITER4:</strong> Dash dirigido + dive funcionando. PASS.</p>
     </div>
     <div class="card">
       <h3>Camera / FX</h3>
       <div class="meta" data-i18n="iter.card.camera.meta">1 iteración</div>
-      <p style="font-size:13px;" data-i18n-html="iter.card.camera.body"><strong>ITER1:</strong> Cámara chase con springs críticos, FOV curve, speed streaks. Aprobado directamente contra referencia.</p>
+      <p data-i18n-html="iter.card.camera.body"><strong>ITER1:</strong> Cámara chase con springs críticos, FOV curve, speed streaks. Aprobado directamente contra referencia.</p>
     </div>
     <div class="card">
       <h3 data-i18n="iter.card.integration.h3">Integración</h3>
       <div class="meta">5 waves</div>
-      <p style="font-size:13px;" data-i18n-html="iter.card.integration.body">Waves de integración verificaron que todos los sistemas funcionan juntos. Cada wave = rebuild + full capture suite.</p>
+      <p data-i18n-html="iter.card.integration.body">Waves de integración verificaron que todos los sistemas funcionan juntos. Cada wave = rebuild + full capture suite.</p>
     </div>
   </div>
 
   <div class="iter-example">
     <div class="tag" data-i18n="iterex.tag.city">EJEMPLO: CITY_ITER1 → CITY_ITER2</div>
-    <p style="font-size:13px; margin:0;">
+    <p>
       <strong>Critic found:</strong> "Chunk streaming leaks GPU instance buffers without bound — capacity overflow at 2.8k blocks."<br>
       <strong>Builder fix:</strong> Implemented chunk recycling, capped instance buffer allocation, added frustum-cull per chunk.<br>
       <strong>Critic re-review:</strong> "All budgets pass with headroom. PASS." — Evidenced by capture run showing 73 draw calls, 581k triangles, 23MB heap.
@@ -1194,17 +1182,18 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
 
 <!-- ════════════════════════════════════════════ MÉTRICAS ══════════════════════════════════════════ -->
 <section id="metricas" class="reveal">
-  <div class="section-label">05</div>
-  <h2 data-i18n="metrics.h2">Resultados y Métricas</h2>
+  <div class="sec-head">
+    <h2 data-i18n="metrics.h2">Resultados y Métricas</h2>
+  </div>
   <p data-i18n-html="metrics.intro">Datos de la última ejecución de evidencia (commit <code class="mono">afcad45</code>, seed <code class="mono">1337</code>).</p>
 
   <div class="metrics-grid">
     <div class="metric-card">
-      <div class="value green">120</div>
+      <div class="value">120</div>
       <div class="label">FPS</div>
     </div>
     <div class="metric-card">
-      <div class="value green">8.33ms</div>
+      <div class="value">8.33ms</div>
       <div class="label">Frame avg</div>
     </div>
     <div class="metric-card">
@@ -1220,23 +1209,23 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
       <div class="label">JS Heap</div>
     </div>
     <div class="metric-card">
-      <div class="value green">42ms</div>
+      <div class="value">42ms</div>
       <div class="label">Load time</div>
     </div>
     <div class="metric-card">
-      <div class="value green">PASS</div>
+      <div class="value measured">PASS</div>
       <div class="label" data-i18n="metric.label.determinism">Determinismo</div>
     </div>
     <div class="metric-card">
-      <div class="value green">0</div>
+      <div class="value measured">0</div>
       <div class="label" data-i18n="metric.label.consoleerrors">Errores consola</div>
     </div>
     <div class="metric-card">
-      <div class="value blue">40+</div>
+      <div class="value">40+</div>
       <div class="label" data-i18n="metric.label.capturesrun">Capturas ejecutadas</div>
     </div>
     <div class="metric-card">
-      <div class="value blue">74</div>
+      <div class="value">74</div>
       <div class="label">Commits</div>
     </div>
     <div class="metric-card">
@@ -1249,16 +1238,17 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
     </div>
   </div>
 
-  <div class="card" style="margin-top: 16px;">
+  <div class="card mt2">
     <h3 data-i18n="metrics.determinism.h3">Verificación de Determinismo</h3>
-    <p style="font-size:13px; margin:0;" data-i18n-html="metrics.determinism.body">Misma seed (<code class="mono">1337</code>) → ciudad byte-idéntica. Hash de geometría: <code class="mono">13e694dc9b05…</code> vs <code class="mono">13e694dc9b05…</code>. 969 edificios idénticos. Superficies de prueba: 3 puntos, idénticos. dHash visual: 8 bits ≤ 12. Structural tris: 546k/546k vs 531k/531k.</p>
+    <p data-i18n-html="metrics.determinism.body">Misma seed (<code class="mono">1337</code>) → ciudad byte-idéntica. Hash de geometría: <code class="mono">13e694dc9b05…</code> vs <code class="mono">13e694dc9b05…</code>. 969 edificios idénticos. Superficies de prueba: 3 puntos, idénticos. dHash visual: 8 bits ≤ 12. Structural tris: 546k/546k vs 531k/531k.</p>
   </div>
 </section>
 
 <!-- ════════════════════════════════════════════ REFERENCIA ══════════════════════════════════════════ -->
 <section id="referencia" class="reveal">
-  <div class="section-label">06</div>
-  <h2 data-i18n="ref.h2">Material de Referencia</h2>
+  <div class="sec-head">
+    <h2 data-i18n="ref.h2">Material de Referencia</h2>
+  </div>
   <p data-i18n="ref.intro">Análisis frame-by-frame de Spider-Man 2 PS5 como ground truth para el critic. 12 secuencias, 54 frames de referencia.</p>
 
   <div class="gallery">
@@ -1288,55 +1278,51 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
     </figure>
   </div>
 
-  <div class="card" style="margin-top: 16px;">
+  <div class="card mt2">
     <h3 data-i18n="ref.docs.h3">Documentos de Análisis</h3>
-    <p style="font-size:13px; margin:0;" data-i18n-html="ref.docs.body">
+    <p data-i18n-html="ref.docs.body">
       El reference-pack contiene 17 documentos de análisis: STATE_MACHINE.md, SWING_ANALYSIS.md, ANCHOR_ANALYSIS.md, CAMERA_ANALYSIS.md, GAME_FEEL.md, MEASUREMENTS.md, VISUAL_FEEDBACK.md, y más. Cada documento cuantifica aspectos específicos del gameplay de referencia para que el critic tenga datos objetivos, no opiniones.
     </p>
   </div>
 </section>
 
-<!-- ════════════════════════════════════════════ CAPTURAS ══════════════════════════════════════════ -->
-<section id="capturas" class="reveal">
-  <div class="section-label">07</div>
-  <h2 data-i18n="cap.h2">Capturas del Juego</h2>
-  <p data-i18n="cap.intro">Capturas automatizadas por el evidence harness. Sweep de hora del día mostrando la ciudad procedural con iluminación dinámica.</p>
+<!-- ════════════════════════════════════════════ METRAJE LOOP 1 ══════════════════════════════════════════ -->
+<section id="metraje" class="reveal">
+  <div class="sec-head">
+    <h2 data-i18n="metraje.h2">Metraje del Primer Loop</h2>
+    <div class="sec-note"><code class="mono">old-version-video.mov</code> · 84 s · 1920×1080</div>
+  </div>
+  <p data-i18n="metraje.intro">Fotogramas de la grabación más antigua que se conserva, repartidos a lo largo del ciclo día/noche. Es el punto de partida del segundo loop: la ciudad ya se sostiene y el balanceo funciona, pero las fachadas son bandas planas y el skyline pierde profundidad con la distancia.</p>
 
-  <div class="gallery">
+  <div class="gallery mt2">
     <figure>
-      <img src="captures/latest/shots/hero.png" alt="Hero shot" loading="lazy">
-      <figcaption data-i18n="cap.fig.hero">Hero — vista principal del juego</figcaption>
+      <img src="assets/loop1/loop1-01.webp" alt="el héroe en pleno arco, con el sol alto tras la bruma" loading="lazy" width="1280" height="693">
+      <figcaption data-i18n="cap.l1.01">Mediodía — el héroe en pleno arco, con el sol alto tras la bruma.</figcaption>
     </figure>
     <figure>
-      <img src="captures/latest/shots/tod_050_noon.png" alt="Noon" loading="lazy">
-      <figcaption data-i18n="cap.fig.noon">Mediodía — iluminación máxima</figcaption>
+      <img src="assets/loop1/loop1-02.webp" alt="la telaraña tensada contra una fachada de sesenta plantas" loading="lazy" width="1280" height="693">
+      <figcaption data-i18n="cap.l1.02">Contrapicado — la telaraña tensada contra una fachada de sesenta plantas.</figcaption>
     </figure>
     <figure>
-      <img src="captures/latest/shots/tod_075_sunset.png" alt="Sunset" loading="lazy">
-      <figcaption data-i18n="cap.fig.sunset">Atardecer — tonos cálidos</figcaption>
+      <img src="assets/loop1/loop1-03.webp" alt="la retícula de manzanas desde el punto alto del balanceo" loading="lazy" width="1280" height="693">
+      <figcaption data-i18n="cap.l1.03">Anochecer — la retícula de manzanas desde el punto alto del balanceo.</figcaption>
     </figure>
     <figure>
-      <img src="captures/latest/shots/tod_090_evening.png" alt="Evening" loading="lazy">
-      <figcaption data-i18n="cap.fig.evening">Noche — ventanas emisivas activas</figcaption>
+      <img src="assets/loop1/loop1-04.webp" alt="las fachadas cálidas con las ventanas ya encendidas" loading="lazy" width="1280" height="693">
+      <figcaption data-i18n="cap.l1.04">Ocaso — las fachadas cálidas con las ventanas ya encendidas.</figcaption>
     </figure>
     <figure>
-      <img src="captures/latest/shots/tod_000_midnight.png" alt="Midnight" loading="lazy">
-      <figcaption data-i18n="cap.fig.midnight">Medianoche — ambiente oscuro</figcaption>
+      <img src="assets/loop1/loop1-05.webp" alt="el cañón azul iluminado sólo por las ventanas" loading="lazy" width="1280" height="693">
+      <figcaption data-i18n="cap.l1.05">Noche — el cañón azul iluminado sólo por las ventanas.</figcaption>
     </figure>
     <figure>
-      <img src="captures/latest/shots/tod_025_sunrise.png" alt="Sunrise" loading="lazy">
-      <figcaption data-i18n="cap.fig.sunrise">Amanecer — transición suave</figcaption>
-    </figure>
-    <figure>
-      <img src="captures/latest/shots/tod_040_morning.png" alt="Morning" loading="lazy">
-      <figcaption data-i18n="cap.fig.morning">Mañana — luz lateral</figcaption>
-    </figure>
-    <figure>
-      <img src="captures/latest/shots/tod_070_late-afternoon.png" alt="Late afternoon" loading="lazy">
-      <figcaption data-i18n="cap.fig.lateafternoon">Tarde tardía — sombras largas</figcaption>
+      <img src="assets/loop1/loop1-06.webp" alt="el skyline completo desde lo más alto del arco" loading="lazy" width="1280" height="693">
+      <figcaption data-i18n="cap.l1.06">Madrugada — el skyline completo desde lo más alto del arco.</figcaption>
     </figure>
   </div>
 </section>
+
+
 
 </main>
 </div><!-- /tab-panel loop1 -->
@@ -1345,35 +1331,52 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
 <div class="tab-panel" id="panel-loop2">
 
 <!-- ════════════════════════════════════════════ HERO 2 ════════════════════════════════════════════ -->
-<section class="hero" id="hero2">
-  <div class="hero-tag" data-i18n="hero.tag.loop2">Loop 2 — Visual Polish · Agosto 2026</div>
-  <h1>Loop <span>2</span></h1>
-  <p class="subtitle" data-i18n-html="hero.subtitle.loop2">De prototipos a producto: modelado de edificios, iluminación fotográfica, animaciones articuladas y efectos visuales — todo driven por el mismo ciclo builder + critic.</p>
-  <div class="hero-meta">
+<section class="hero has-video" id="hero2">
+  <div class="hero-media">
+    <video class="hero-video" src="assets/hero-video.mov" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
+  </div>
+  <div class="hero-content">
+    <h1>Loop <span>2</span></h1>
+    <p class="subtitle" data-i18n-html="hero.subtitle.loop2">De prototipos a producto: modelado de edificios, iluminación fotográfica, animaciones articuladas y efectos visuales — todo driven por el mismo ciclo builder + critic.</p>
+    <div class="hero-meta">
     <span data-i18n-html="hero2.meta.subsystems"><strong>4 subsistemas</strong> en paralelo</span>
     <span data-i18n-html="hero2.meta.commits"><strong>~20 commits</strong> de visual polish</span>
     <span data-i18n-html="hero2.meta.docs"><strong>10+ docs</strong> de crítica independiente</span>
   </div>
-  <div class="hero-badges">
-    <span class="badge ok">Fog continuity PASS</span>
-    <span class="badge ok">Flip leak FIX</span>
-    <span class="badge ok">Shadow map LIVE</span>
-    <span class="badge ok">Buffer leak FIX</span>
-    <span class="badge info">15 building variants</span>
   </div>
-  <div class="scroll-hint">↓</div>
+</section>
+
+<main>
+<!-- ════════════════════════════════════════════ PROMPT LOOP 2 ══════════════════════════════════════════ -->
+<section id="prompt2" class="reveal">
+  <div class="sec-head">
+    <h2 data-i18n="prompt2.h2">El Prompt del Loop 2</h2>
+  </div>
+  <p data-i18n="prompt2.intro">El primer loop entregó una ciudad que funcionaba pero parecía un prototipo. El encargo del segundo no toca una sola línea de física: ataca únicamente lo que se ve, y con el presupuesto de rendimiento del Loop 1 ya congelado.</p>
+
+  <div class="prompt-block" data-i18n-attr="data-label:promptblock2.label" data-label="PROMPT DEL LOOP 2">
+    <div class="prompt-text">The city works, but it still looks like <span class="hl">grey boxes with windows painted on</span>. The physics is done — do not touch it. This loop is about how it LOOKS.
+<span class="prompt-annotation" data-i18n="prompt2.annot1">El scope queda acotado desde la primera línea: nada de tocar el solver de péndulo que el Loop 1 dejó en PASS.</span>
+Fan out four agents in parallel: one on <span class="hl">building models and facades</span>, one on <span class="hl">lighting and sky</span>, one on the hero's <span class="hl">animation</span>, one on effects. I want authored buildings instead of extruded cubes, facades that read as architecture at gameplay distance, and a skyline with real depth all the way to the horizon.
+<span class="prompt-annotation" data-i18n="prompt2.annot2">Cuatro subsistemas en paralelo, cada uno con su propio critic. Las exigencias son medibles: siluetas legibles a 40-80px, niebla sin discontinuidad, fachadas que se lean como arquitectura.</span>
+The day/night cycle has to look photographic, and the fog must be <span class="hl">continuous</span> — no visible cut at any camera altitude. The hero has to be articulated, with silhouettes you can read at gameplay scale, not a floating box.
+
+Same rules as loop 1: the critic compares against the <span class="hl">real reference frames</span> and returns PASS or FAIL with numbers, never opinions. And <span class="hl">every performance budget from loop 1 still holds</span> — if frame time or draw calls regress, it is a FAIL even if it looks better. Loop until the critic stops finding gaps.
+
+<span class="prompt-annotation" data-i18n="prompt2.annot3">La restricción que define el Loop 2: subir el listón visual sin gastar el margen de rendimiento que el Loop 1 dejó verificado. Un resultado más bonito y más lento es un FAIL.</span></div>
+  </div>
 </section>
 
 <!-- ════════════════════════════════════════════ FASES 2 ════════════════════════════════════════════ -->
-<main>
 <section id="fases2" class="reveal">
-  <div class="section-label">01</div>
-  <h2 data-i18n="fases.h2">Fases de Construcción</h2>
+  <div class="sec-head">
+    <h2 data-i18n="fases.h2">Fases de Construcción</h2>
+  </div>
   <p data-i18n-html="fases2.intro">El segundo loop transformó la ciudad de cajas placeholder a un Manhattan atmosférico con edificios authored, texturas reales, iluminación fotográfica y un héroe articulado. Cada subsistema pasó por el mismo ciclo <strong>build → critique → fix</strong>.</p>
 
-  <div class="subsystem-grid" style="margin-top: 20px;">
+  <div class="subsystem-grid mt2">
     <div class="subsystem-card">
-      <div class="sys-tag" style="color: var(--accent);" data-i18n="sys.tag.modeling">Modelado — City Builder</div>
+      <div class="sys-tag" data-i18n="sys.tag.modeling">Modelado — City Builder</div>
       <h3 data-i18n="sys.modeling.h3">Edificios Authored + Facades</h3>
       <div class="detail" data-i18n-html="sys.modeling.detail">
         <strong>Pipeline GLB:</strong> 40MB → 1.4MB, 16 variantes de Blender<br>
@@ -1385,7 +1388,7 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
     </div>
 
     <div class="subsystem-card">
-      <div class="sys-tag" style="color: var(--gold);" data-i18n="sys.tag.lighting">Iluminación — DayNight + SkyDome</div>
+      <div class="sys-tag" data-i18n="sys.tag.lighting">Iluminación — DayNight + SkyDome</div>
       <h3 data-i18n="sys.lighting.h3">Ciclo Día/Noche Fotográfico</h3>
       <div class="detail" data-i18n-html="sys.lighting.detail">
         <strong>SkyDome:</strong> 3 placas fotográficas (day, night, horizon strip) + gradiente procedural<br>
@@ -1397,7 +1400,7 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
     </div>
 
     <div class="subsystem-card">
-      <div class="sys-tag" style="color: var(--ok);" data-i18n="sys.tag.animation">Animación — Pose Library + Motion</div>
+      <div class="sys-tag" data-i18n="sys.tag.animation">Animación — Pose Library + Motion</div>
       <h3 data-i18n="sys.animation.h3">Héroe Articulado con 21 Variantes</h3>
       <div class="detail" data-i18n-html="sys.animation.detail">
         <strong>Library:</strong> 912 poses hand-authored, 7 estados × 2-3 variantes<br>
@@ -1409,7 +1412,7 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
     </div>
 
     <div class="subsystem-card">
-      <div class="sys-tag" style="color: var(--accent2);" data-i18n="sys.tag.fx">Efectos — FxSystem + Speed</div>
+      <div class="sys-tag" data-i18n="sys.tag.fx">Efectos — FxSystem + Speed</div>
       <h3>Web Lines, Glints, Speed Streaks</h3>
       <div class="detail" data-i18n-html="sys.fx.detail">
         <strong>Web:</strong> Línea tenue (0.04m), shoot-out + snap transients<br>
@@ -1423,11 +1426,12 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
 </section>
 
 <!-- ════════════════════════════════════════════ TIMELINE 2 ════════════════════════════════════════════ -->
-<section class="reveal" style="margin-top: 48px;">
-  <div class="section-label">02</div>
-  <h2 data-i18n="timeline.h2">Línea Temporal</h2>
+<section class="reveal">
+  <div class="sec-head">
+    <h2 data-i18n="timeline.h2">Línea Temporal</h2>
+  </div>
   <p data-i18n="timeline.intro">Secuencia cronológica de commits del Loop 2, agrupados por subsistema.</p>
-  <p style="font-size:12px; color:var(--dim); margin-top:4px;" data-i18n="timeline.swipehint">← Desliza para ver todos los commits →</p>
+  <p class="hint" data-i18n="timeline.swipehint">← Desliza para ver todos los commits →</p>
 
   <div class="timeline">
     <div class="timeline-item">
@@ -1514,85 +1518,86 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
 </section>
 
 <!-- ════════════════════════════════════════════ ITERACIÓN 2 ════════════════════════════════════════════ -->
-<section id="iteracion2" class="reveal" style="margin-top: 48px;">
-  <div class="section-label">03</div>
-  <h2 data-i18n="iter.h2">Ciclo de Iteración</h2>
+<section id="iteracion2" class="reveal">
+  <div class="sec-head">
+    <h2 data-i18n="iter.h2">Ciclo de Iteración</h2>
+  </div>
   <p data-i18n-html="iter2.intro">Cada subsistema fue construido por DeepSeek V4 Flash, revisado por GPT-5.5 como critic independiente, y coordinado por Opus. Los veredictos son binarios: PASS o FAIL con evidencia cuantificada.</p>
 
   <div class="iter-flow">
     <span class="iter-step build" data-i18n="iterflow.build2">DeepSeek implementa</span>
-    <span class="iter-arrow">→</span>
+    <span class="iter-arrow"><svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 6h14M10.5 1.5 15.5 6l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="iter-step critique" data-i18n="iterflow.review2">GPT-5.5 critica</span>
-    <span class="iter-arrow">→</span>
+    <span class="iter-arrow"><svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 6h14M10.5 1.5 15.5 6l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="iter-step critique" data-i18n="iterflow.fail2">FAIL + gaps</span>
-    <span class="iter-arrow">→</span>
+    <span class="iter-arrow"><svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 6h14M10.5 1.5 15.5 6l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="iter-step fix" data-i18n="iterflow.fix2">DeepSeek corrige</span>
-    <span class="iter-arrow">→</span>
+    <span class="iter-arrow"><svg width="17" height="12" viewBox="0 0 17 12" fill="none" aria-hidden="true"><path d="M1 6h14M10.5 1.5 15.5 6l-5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     <span class="iter-step pass">PASS ✓</span>
   </div>
 
   <!-- City Modeling -->
-  <h3 style="margin-top: 28px; margin-bottom: 12px;" data-i18n="iter2.cityh3">City Modeling — Veredictos</h3>
+  <h4 data-i18n="iter2.cityh3">City Modeling — Veredictos</h4>
   <div class="card-grid">
-    <div class="card">
+    <div class="card card--fail">
       <h3>Buildings Visual</h3>
       <div class="meta">
-        <span class="iter-badge fail">4 PASS / 10 FAIL / 1 BLOCKED</span>
+        <span class="verdict fail">4 PASS / 10 FAIL / 1 BLOCKED</span>
       </div>
-      <p style="font-size:13px;" data-i18n-html="iter2.card.buildingsvisual">
+      <p data-i18n-html="iter2.card.buildingsvisual">
         <strong>Gap principal:</strong> Modelos authored visualmente inertes a distancias de gameplay (0.2-6.8% de pixels). Solo 53/486 buildings (10.9%) tenían modelo GLB. Techo de registry a 85m excluía skyline.
       </p>
     </div>
-    <div class="card">
+    <div class="card card--pass">
       <h3>Buildings Performance</h3>
       <div class="meta">
-        <span class="iter-badge pass">All budgets PASS</span>
+        <span class="verdict pass">All budgets PASS</span>
       </div>
-      <p style="font-size:13px;" data-i18n-html="iter2.card.buildingsperf">
+      <p data-i18n-html="iter2.card.buildingsperf">
         <strong>Draw calls:</strong> 109/220 (50% headroom) · <strong>Tris:</strong> 584k/900k (35%) · <strong>Heap:</strong> 39.5MB/512MB · <strong>Frame p95:</strong> 10.2ms/16.7ms<br>
         <strong>Bug found:</strong> GPU buffer leak en chunk streaming (+1.7 MB/min).
       </p>
     </div>
-    <div class="card">
+    <div class="card card--pass">
       <h3>City Atmosphere Iter2</h3>
       <div class="meta">
-        <span class="iter-badge pass">21 PASS / 2 PARTIAL</span>
+        <span class="verdict pass">21 PASS / 2 PARTIAL</span>
       </div>
-      <p style="font-size:13px;" data-i18n-html="iter2.card.cityatmo">
+      <p data-i18n-html="iter2.card.cityatmo">
         <strong>"The single biggest quality gain in the project's history."</strong> Fog continuity resuelto. Skyline muestra múltiples rangos de torres hasta el horizonte. Facades ahora leen como arquitectura.
       </p>
     </div>
-    <div class="card">
+    <div class="card card--pass">
       <h3>City Life Iter2</h3>
       <div class="meta">
-        <span class="iter-badge pass">8 PASS / 0 FAIL / 1 BLOCKED</span>
+        <span class="verdict pass">8 PASS / 0 FAIL / 1 BLOCKED</span>
       </div>
-      <p style="font-size:13px;">
+      <p>
         Buffer leak plateaued at 785-809 across all 12 legs. Heap metric honest. Hooks work. LOD smooth. Remaining: visual LOD blocking (headless WebGL limitation).
       </p>
     </div>
   </div>
 
   <!-- Animation -->
-  <h3 style="margin-top: 28px; margin-bottom: 12px;" data-i18n="iter2.animh3">Animation — Veredictos</h3>
+  <h4 data-i18n="iter2.animh3">Animation — Veredictos</h4>
   <div class="card-grid">
-    <div class="card">
+    <div class="card card--fail">
       <h3>Animation Iter1</h3>
       <div class="meta">
-        <span class="iter-badge fail">2 PASS / 5 FAIL / 2 BLOCKED</span>
+        <span class="verdict fail">2 PASS / 5 FAIL / 2 BLOCKED</span>
       </div>
-      <p style="font-size:13px;" data-i18n-html="iter2.card.anim1">
+      <p data-i18n-html="iter2.card.anim1">
         <strong>P0:</strong> Flip leak into WALL_RUN (36.9°, 226.7°, 334.8° pitch measured).<br>
         <strong>P1:</strong> Swing variants unreadable at gameplay scale. Variant 0 siempre seleccionada.<br>
         <strong>P2:</strong> No idle pose, no secondary motion.
       </p>
     </div>
-    <div class="card">
+    <div class="card card--pass">
       <h3>Animation Iter2</h3>
       <div class="meta">
-        <span class="iter-badge pass">6 PASS / 0 FAIL / 3 BLOCKED</span>
+        <span class="verdict pass">6 PASS / 0 FAIL / 3 BLOCKED</span>
       </div>
-      <p style="font-size:13px;" data-i18n-html="iter2.card.anim2">
+      <p data-i18n-html="iter2.card.anim2">
         <strong>Flip:</strong> State-exact resolution → 0° en frame de contacto (PASS).<br>
         <strong>Silhouettes:</strong> SCISSOR/CANNONBALL/LAYOUT distinct at 40-80px (PASS).<br>
         <strong>Idle:</strong> Weight-shift + breathing layer added (PASS).<br>
@@ -1601,18 +1606,18 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
     </div>
   </div>
 
-  <div class="iter-example" style="margin-top: 16px;">
+  <div class="iter-example mt2">
     <div class="tag" data-i18n="iterex.tag.flip">EJEMPLO: ANIM_ITER1 → ANIM_ITER2 — FLIP FIX</div>
-    <p style="font-size:13px; margin:0;">
+    <p>
       <strong>Critic found:</strong> "Hero emits 214.7° of flip pitch entering WALL_RUN. The old resolve mechanism accelerates a cut-short flip over 0.18s, leaking intermediate pitch into contact states."<br>
       <strong>Builder fix:</strong> State-exact resolution — first non-airborne frame IS the whole turn, pitch/roll zero from that frame. Three independent gates: FlipController zeroing, isSurfaceContactState at rig application, MotionSample zeroing.<br>
       <strong>Critic re-review:</strong> "Flip pitch on WALL_RUN contact frame: 0.0°. PASS."
     </p>
   </div>
 
-  <div class="iter-example" style="margin-top: 12px;">
+  <div class="iter-example" class="mt1">
     <div class="tag" data-i18n="iterex.tag.fog">EJEMPLO: CITY_ATMO_ITER2 — FOG CONTINUITY</div>
-    <p style="font-size:13px; margin:0;">
+    <p>
       <strong>Critic found:</strong> "Fog discontinuity at y=20/y=80 produced a 'featureless pale field' above and 'brown-mauve void' below. Skyline at 235m showed zero layered depth."<br>
       <strong>Builder fix:</strong> Camera-driven fog via onBeforeRender. Continuous smoothstep(alt, 8, 150), eased altitude (0.35s tau), rate-limited output. Night fog scales: near 0.6, far 0.95.<br>
       <strong>Critic re-review:</strong> "Skyline shows multiple ranks of towers extending to the horizon with layered depth. The single biggest quality gain in the project's history. 21 PASS, 2 PARTIAL."
@@ -1621,13 +1626,14 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
 </section>
 
 <!-- ════════════════════════════════════════════ MÉTRICAS 2 ════════════════════════════════════════════ -->
-<section id="metricas2" class="reveal" style="margin-top: 48px;">
-  <div class="section-label">04</div>
-  <h2 data-i18n="metrics2.h2">Presupuestos y Métricas</h2>
+<section id="metricas2" class="reveal">
+  <div class="sec-head">
+    <h2 data-i18n="metrics2.h2">Presupuestos y Métricas</h2>
+  </div>
   <p data-i18n="metrics2.intro">Loop 2 mantuvo todos los budgets del Loop 1 mientras agregaba complejidad visual significativa. Headroom amplio en todas las métricas.</p>
 
-  <h3 style="margin-top: 20px; margin-bottom: 12px;">Performance Budgets</h3>
-  <table class="budget-table">
+  <h4>Performance Budgets</h4>
+  <div class="table-scroll"><table class="budget-table">
     <tr>
       <th data-i18n="th.metric">Métrica</th>
       <th>Budget</th>
@@ -1670,9 +1676,9 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
       <td class="num">190 ms</td>
       <td class="num pass" data-i18n="loadtime.headroom">6% de budget</td>
     </tr>
-  </table>
+  </table></div>
 
-  <h3 style="margin-top: 28px; margin-bottom: 12px;" data-i18n="metrics2.cityh3">Ciudad — Métricas Post-Loop 2</h3>
+  <h4 data-i18n="metrics2.cityh3">Ciudad — Métricas Post-Loop 2</h4>
   <div class="metrics-grid">
     <div class="metric-card">
       <div class="value">486</div>
@@ -1695,7 +1701,7 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
       <div class="label" data-i18n="metric.archetypes">Arquetipos</div>
     </div>
     <div class="metric-card">
-      <div class="value green">1.0ms</div>
+      <div class="value">1.0ms</div>
       <div class="label" data-i18n="metric.generation">Generación (486 bldgs)</div>
     </div>
     <div class="metric-card">
@@ -1708,7 +1714,7 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
     </div>
   </div>
 
-  <h3 style="margin-top: 28px; margin-bottom: 12px;" data-i18n="metrics2.animh3">Animación — Métricas</h3>
+  <h4 data-i18n="metrics2.animh3">Animación — Métricas</h4>
   <div class="metrics-grid">
     <div class="metric-card">
       <div class="value">912</div>
@@ -1723,7 +1729,7 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
       <div class="label" data-i18n="metric.totalvariants">Variantes totales</div>
     </div>
     <div class="metric-card">
-      <div class="value green">0.0°</div>
+      <div class="value">0.0°</div>
       <div class="label" data-i18n="metric.flipcontact">Flip en contacto</div>
     </div>
     <div class="metric-card">
@@ -1731,13 +1737,13 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
       <div class="label" data-i18n="metric.trisrange">Tris (rango)</div>
     </div>
     <div class="metric-card">
-      <div class="value green">9.1ms</div>
+      <div class="value">9.1ms</div>
       <div class="label">Frame p95</div>
     </div>
   </div>
 
-  <h3 style="margin-top: 28px; margin-bottom: 12px;" data-i18n="metrics2.summaryh3">Resumen de Críticas — Loop 2</h3>
-  <table class="budget-table">
+  <h4 data-i18n="metrics2.summaryh3">Resumen de Críticas — Loop 2</h4>
+  <div class="table-scroll"><table class="budget-table">
     <tr>
       <th>Subsystem</th>
       <th>Iteration</th>
@@ -1753,7 +1759,7 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
     <tr>
       <td>Buildings Visual</td>
       <td class="num">1</td>
-      <td style="color:var(--fail);">4 PASS / 10 FAIL</td>
+      <td class="fail">4 PASS / 10 FAIL</td>
       <td>Fog deletes city, facades blank, models inert</td>
     </tr>
     <tr>
@@ -1777,7 +1783,7 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
     <tr>
       <td>Animation Iter1</td>
       <td class="num">1</td>
-      <td style="color:var(--fail);">2 PASS / 5 FAIL</td>
+      <td class="fail">2 PASS / 5 FAIL</td>
       <td>Flip leak, unreadable variants</td>
     </tr>
     <tr>
@@ -1786,17 +1792,18 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
       <td class="pass">6 PASS / 0 FAIL</td>
       <td>Flip fix, silhouettes, idle alive</td>
     </tr>
-  </table>
+  </table></div>
 </section>
 
 <!-- ════════════════════════════════════════════ EVIDENCIA 2 ════════════════════════════════════════════ -->
-<section id="evidencia2" class="reveal" style="margin-top: 48px;">
-  <div class="section-label">05</div>
-  <h2 data-i18n="evid2.h2">Evidencia Visual</h2>
+<section id="evidencia2" class="reveal">
+  <div class="sec-head">
+    <h2 data-i18n="evid2.h2">Evidencia Visual</h2>
+  </div>
   <p data-i18n="evid2.intro">Comparaciones frame-a-frame de animaciones y capturas del estado actual del juego post-Loop 2.</p>
 
-  <h3 style="margin-top: 20px; margin-bottom: 12px;">Animation State Comparisons</h3>
-  <p style="font-size: 13px;" data-i18n-html="evid2.statecomp.intro">Cada estado del héroe comparado lado a lado: referencia vs implementación. El critic verifica silueta, proporción y legibilidad a escala de gameplay (40-80px).</p>
+  <h4>Animation State Comparisons</h4>
+  <p data-i18n-html="evid2.statecomp.intro">Cada estado del héroe comparado lado a lado: referencia vs implementación. El critic verifica silueta, proporción y legibilidad a escala de gameplay (40-80px).</p>
 
   <div class="compare-grid">
     <figure>
@@ -1833,51 +1840,51 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
     </figure>
   </div>
 
-  <h3 style="margin-top: 28px; margin-bottom: 12px;">Swing Variant Sheet</h3>
+  <h4>Swing Variant Sheet</h4>
   <div class="gallery" style="grid-template-columns: 1fr;">
     <figure>
-      <img src="docs/animation/variants-SWING.png" alt="Swing variant comparison" loading="lazy" style="max-height: 400px; object-fit: contain; background: var(--bg2);">
+      <img src="docs/animation/variants-SWING.png" alt="Swing variant comparison" loading="lazy" style="max-height:400px; object-fit:contain; background:var(--paper-warm);">
       <figcaption data-i18n="fig.swingsheet">Comparación de las 3 variantes de SWING: SCISSOR (diagonal largo con V ancho), CANNONBALL (pelota compacta), LAYOUT (cruz invertida con brazos extendidos)</figcaption>
     </figure>
   </div>
 
-  <h3 style="margin-top: 28px; margin-bottom: 12px;" data-i18n="evid2.fliph3">Flip Resolution — Telemetría</h3>
+  <h4 data-i18n="evid2.fliph3">Flip Resolution — Telemetría</h4>
   <div class="card">
     <h3>State-Exact Flip Fix (P0)</h3>
-    <p style="font-size:13px;" data-i18n-html="evid2.flipfix.body">
+    <p data-i18n-html="evid2.flipfix.body">
       <strong>Antes (ITER1):</strong> Hero emitía 214.7° de flip pitch al entrar a WALL_RUN. El mecanismo anterior aceleraba un flip acortado sobre 0.18s, filtrando pitch intermedio a estados de contacto.<br><br>
       <strong>Fix:</strong> Resolución state-exact — el primer frame no-airborne ES el giro completo. Pitch/roll = 0° desde ese frame. Tres puertas independientes: FlipController zeroing, isSurfaceContactState en rig application, MotionSample zeroing.<br><br>
-      <strong>Después (ITER2):</strong> Flip pitch en frame de contacto de WALL_RUN: <span style="color: var(--ok); font-weight: 700;">0.0°</span>
+      <strong>Después (ITER2):</strong> Flip pitch en frame de contacto de WALL_RUN: <span class="measured-inline">0.0°</span>
     </p>
   </div>
 
-  <h3 style="margin-top: 28px; margin-bottom: 12px;">Fog Before / After</h3>
+  <h4>Fog Before / After</h4>
   <div class="card-grid">
     <div class="card">
       <h3 data-i18n="evid2.fog.before.h3">Antes — Fog Discontinuo</h3>
-      <p style="font-size:13px;" data-i18n-html="evid2.fog.before.body">
+      <p data-i18n-html="evid2.fog.before.body">
         Discontinuidad en y=20/y=80. Campo pálido sin features arriba. Void marrón-mauve abajo. Skyline a 235m sin profundidad layered. Cada camera altitude creaba un "cut" visible.
       </p>
     </div>
     <div class="card">
       <h3 data-i18n="evid2.fog.after.h3">Después — Fog Continuo</h3>
-      <p style="font-size:13px;" data-i18n-html="evid2.fog.after.body">
+      <p data-i18n-html="evid2.fog.after.body">
         Smoothstep continuo altitud (8-150m). Skyline muestra múltiples rangos de torres hasta el horizonte con profundidad layered. "The single biggest quality gain in the project's history." — GPT-5.5 Critic
       </p>
     </div>
   </div>
 
-  <h3 style="margin-top: 28px; margin-bottom: 12px;">Ground Textures</h3>
+  <h4>Ground Textures</h4>
   <div class="card-grid">
     <div class="card">
       <h3 data-i18n="evid2.asphalt.h3">Asfalto (Roads)</h3>
-      <p style="font-size:13px;" data-i18n-html="evid2.asphalt.body">
+      <p data-i18n-html="evid2.asphalt.body">
         UV world-space override via onBeforeCompile. Un tile = 4m independiente del instance scale. Anisotropic filtering. Material color 0xffffff para que la textura SEA el albedo.
       </p>
     </div>
     <div class="card">
       <h3 data-i18n="evid2.pavement.h3">Pavimento (Sidewalks)</h3>
-      <p style="font-size:13px;" data-i18n-html="evid2.pavement.body">
+      <p data-i18n-html="evid2.pavement.body">
         Textura procedural con disposal pipeline. Triple-multiply bug fix: el color del material no debe multiplicar la textura. Disposal en cierre de chunks.
       </p>
     </div>
@@ -1891,110 +1898,165 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
 <div class="tab-panel" id="panel-definitive">
 
 <!-- ════════════════════════════════════════════════ HERO DEFINITIVO ════════════════════════════════════════════════ -->
-<section class="hero" id="hero-definitive">
-  <div class="hero-tag" data-i18n="hero.tag.def">NaN Gauntlet Loop · Definitivo · post-Loop 2</div>
-  <h1 data-i18n-html="hero.def.h1">Definitivo <span>—</span></h1>
-  <p class="subtitle" data-i18n-html="hero.def.subtitle">Todo el trabajo que el autor hizo <strong>fuera de los agentes</strong>: modo arcade con combo scoring, frases generadas por MiniMax, cielo fotográfico, configuración y pulido de cierre.</p>
-  <div class="hero-meta">
-    <span data-i18n-html="hero.def.meta1"><strong>Arcade</strong> + combo Tony Hawk</span>
-    <span data-i18n-html="hero.def.meta2"><strong>MiniMax</strong> voces con subtítulos</span>
-    <span data-i18n-html="hero.def.meta3"><strong>3 placas</strong> de cielo fotográfico</span>
+<section class="hero paper" id="hero-definitive">
+  <div class="hero-content">
+    <h1 data-i18n="hero.def.h1">Definitivo</h1>
+    <p class="subtitle" data-i18n-html="hero.def.subtitle">El juego terminado y su puerta de entrada: <strong>menú, modos, ajustes y pausa</strong>. Y todo lo que el autor hizo <strong>fuera de los agentes</strong>: scoring arcade, voces de MiniMax, cielo fotográfico y pulido de cierre.</p>
+    <div class="hero-meta">
+    <span data-i18n-html="hero.def.meta1"><strong>4 pantallas</strong> sobre una calle viva</span>
+    <span data-i18n-html="hero.def.meta2"><strong>Arcade</strong> + combo Tony Hawk</span>
+    <span data-i18n-html="hero.def.meta3"><strong>MiniMax</strong> voces con subtítulos</span>
   </div>
-  <div class="hero-badges">
-    <span class="badge ok">Arcade LIVE</span>
-    <span class="badge info" data-i18n="badge.5voices">5 voces IA</span>
-    <span class="badge ok" data-i18n="badge.skydome3">SkyDome 3 placas</span>
-    <span class="badge info">i18n EN/ES</span>
   </div>
-  <div class="scroll-hint">↓</div>
 </section>
 
 <main>
-<!-- ════════════════════════════════════════════════ MODE ARCADES ════════════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════════ PLIEGO DE PANTALLAS ════════════════════════════════════════════════ -->
+<section id="menu" class="reveal">
+  <div class="def-head">
+    <h2 data-i18n="menu.h2">La Puerta de Entrada</h2>
+    <p class="lede" data-i18n-html="menu.lede">El juego ya no arranca en marcha. Arranca en una pantalla de título que <strong>no es una imagen</strong>: es una toma de cámara fija de una calle que sigue corriendo detrás del menú: pasa el tráfico, se encienden las ventanas, el héroe respira. Cuatro pantallas, una máquina de estados, y ni un objeto de escena nuevo para sostenerla.</p>
+    <p class="hint"><span data-i18n="menu.measured.label">Menú medido en</span> <span class="measured-inline">120 fps</span> · <span class="measured-inline">8.33 ms</span> · <span class="measured-inline">77 draw calls</span> · <span data-i18n="menu.measured.console">consola limpia</span></p>
+  </div>
+
+  <div class="screen-list">
+    <figure class="screen-plate">
+      <figcaption class="plate-meta">
+        <span class="plate-state mono">data-mode=&quot;main&quot;</span>
+        <h3 data-i18n="plate.main.h3">Menú principal</h3>
+        <p data-i18n-html="plate.main.p1"><strong>Jugar</strong>, <strong>Ajustes</strong> y <strong>Salir</strong>. La simulación está pausada y la puntuación <strong>desarmada</strong>: todavía no se ha elegido modo, así que nada puede estar acumulando una partida por detrás.</p>
+        <p data-i18n-html="plate.main.p2">La toma usa un <code class="mono">fov 36</code> contra el 70 de la cámara de persecución: el teleobjetivo comprime la avenida en la pared de fachadas de la que trata el plano.</p>
+      </figcaption>
+      <img src="docs/ui/menu/01-menu-principal.webp" alt="Menú principal de .Spider-NaN sobre una calle de la ciudad" width="1600" height="900" loading="lazy" data-i18n-attr="alt:plate.main.alt">
+    </figure>
+
+    <figure class="screen-plate">
+      <figcaption class="plate-meta">
+        <span class="plate-state mono">data-mode=&quot;modes&quot;</span>
+        <h3 data-i18n="plate.modes.h3">Elegir modo</h3>
+        <p data-i18n-html="plate.modes.p1"><strong>Jugar</strong> no lanza la partida: pregunta qué clase de partida. <strong>Modo Arcade</strong> puntúa swings, tiempo en el aire y flips; <strong>Modo Libre</strong> no puntúa nada.</p>
+        <p data-i18n-html="plate.modes.p2">El objetivo se fija <strong>al empezar la partida</strong>, nunca al pausar, así que <code class="mono">Esc → Reanudar</code> jamás cambia de modo. La cámara no se mueve: es el mismo plano que el título.</p>
+      </figcaption>
+      <img src="docs/ui/menu/02-seleccion-modo.webp" alt="Pantalla de selección de modo: Modo Arcade y Modo Libre" width="1600" height="900" loading="lazy" data-i18n-attr="alt:plate.modes.alt">
+    </figure>
+
+    <figure class="screen-plate">
+      <figcaption class="plate-meta">
+        <span class="plate-state mono">data-mode=&quot;settings&quot;</span>
+        <h3 data-i18n="plate.settings.h3">Ajustes</h3>
+        <p data-i18n-html="plate.settings.p1">Tres volúmenes independientes (<strong>efectos</strong>, <strong>música</strong> y <strong>voces</strong>), el <strong>overlay de depuración</strong>, el <strong>modo clásico</strong> y el <strong>idioma EN/ES</strong>. Los valores persisten en <code class="mono">localStorage</code>.</p>
+        <p data-i18n-html="plate.settings.p2">El panel se abre desde el título <em>y</em> desde la pausa, así que <strong>Volver</strong> recuerda quién lo llamó. Por eso mismo es el único estado que <strong>no toca la cámara</strong>: no sabe en cuál de los dos está.</p>
+      </figcaption>
+      <img src="docs/ui/menu/03-ajustes.webp" alt="Panel de ajustes con volúmenes, depuración, modo clásico e idioma" width="1600" height="900" loading="lazy" data-i18n-attr="alt:plate.settings.alt">
+    </figure>
+
+    <figure class="screen-plate">
+      <figcaption class="plate-meta">
+        <span class="plate-state mono">data-mode=&quot;pause&quot;</span>
+        <h3 data-i18n="plate.pause.h3">Pausa</h3>
+        <p data-i18n-html="plate.pause.p1">Se abre con <code class="mono">Esc</code> o al perder el <em>pointer lock</em>. La simulación se detiene pero el mundo <strong>sigue renderizándose</strong> detrás: la partida se congela donde estaba, a la vista.</p>
+        <p data-i18n-html="plate.pause.p2">Aquí el fondo de menú no se arma; la cámara sigue siendo la de la partida. <strong>Salir al Menú</strong> resetea por la misma ruta que <code class="mono">__GAUNTLET__.reset()</code> y vuelve al título.</p>
+      </figcaption>
+      <img src="docs/ui/menu/05-pausa.webp" alt="Overlay de pausa sobre la partida congelada" width="1600" height="900" loading="lazy" data-i18n-attr="alt:plate.pause.alt">
+    </figure>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════ MODO ARCADE ════════════════════════════════════════════════ -->
 <section id="arcade" class="reveal">
-  <div class="section-label">01</div>
-  <h2 data-i18n="arcade.h2">Modo Arcade</h2>
-  <p data-i18n-html="arcade.intro">Más allá de los loops de agentes, el autor añadió un <strong>modo arcade</strong> con la selección inicial de <em>libre vs arcade</em> que habilita el sistema de puntos. Las <strong>volteretas</strong> (<em>flips</em>) se leen del estado de flip del animador y se pagan al completarlas; los <em>chain links</em> sin tocar el suelo suman <strong>+1 al multiplicador</strong>. Una <strong>HUD de puntuación</strong> y un audio <em>riser</em> acompañan el scoring estilo <strong>Tony Hawk</strong>.</p>
-  <p style="font-size:12px; color:var(--dim); margin-top:4px;"><span data-i18n="label.commits">Commits:</span> <code class="mono">a2b0ff1</code> · <code class="mono">8478a6e</code> · <code class="mono">d694b86</code> · <code class="mono">fc3a566</code></p>
+  <div class="def-head">
+    <h2 data-i18n="arcade.h2">Modo Arcade</h2>
+    <p class="lede" data-i18n-html="arcade.intro">Elegido el modo, la quinta pantalla no es un menú: es el HUD. Las <strong>volteretas</strong> se leen del estado de flip del animador y se pagan al completarlas; los <em>links</em> encadenados sin tocar el suelo suman <strong>+1 al multiplicador</strong>. Un <em>riser</em> de audio marca el pico del combo.</p>
+    <p class="hint"><span data-i18n="label.commits">Commits:</span> <code class="mono">a2b0ff1</code> · <code class="mono">8478a6e</code> · <code class="mono">d694b86</code> · <code class="mono">fc3a566</code></p>
+  </div>
 
-  <figure style="margin:0;">
-    <img class="arcade-shot" src="docs/ui/mode-screen.png" alt="Pantalla de selección de modo — Libre vs Arcade" loading="lazy" data-i18n-attr="alt:arcade.modeimg.alt">
-    <figcaption style="padding:8px 12px; font-size:11px; color:var(--dim);" data-i18n="arcade.modeimg.caption">Pantalla de selección de modo — Libre (sin sistema de puntos) vs Arcade (puntuación activa).</figcaption>
-  </figure>
+  <div class="screen-list">
+    <figure class="screen-plate">
+      <figcaption class="plate-meta">
+        <span class="plate-state mono">data-mode=&quot;playing&quot;</span>
+        <h3 data-i18n="plate.arcade.h3">HUD de puntuación</h3>
+        <p data-i18n-html="plate.arcade.p1">Puntos, multiplicador vivo y el nombre del truco recién pagado: aquí <code class="mono">GRAN AIRE +3.500</code> con el multiplicador en <strong>×7</strong> tras seis enlaces sin pisar suelo.</p>
+        <p data-i18n-html="plate.arcade.p2">La marca (<strong>MEJOR</strong>) vive en la esquina y sólo la escribe Arcade. La tira de controles se retira sola a los 45 s.</p>
+      </figcaption>
+      <img src="docs/ui/menu/04-arcade-hud.webp" alt="HUD de arcade con 11.764 puntos, multiplicador x7 y el truco GRAN AIRE" width="1600" height="900" loading="lazy" data-i18n-attr="alt:plate.arcade.alt">
+    </figure>
+  </div>
 
-  <div class="card-grid" style="margin-top:20px;">
+  <div class="card-grid mt3">
     <div class="card">
       <h3 data-i18n="arcade.card1.h3">Scoring Tipo Tony Hawk</h3>
       <div class="meta" data-i18n="arcade.card1.meta">Combo por contacto</div>
-      <p style="font-size:13px;" data-i18n-html="arcade.card1.body">Las <strong>volteretas</strong> (flips) se leen del estado de flip del animador y se <strong>pagan al completar</strong> el truco. Encadenar <em>links</em> sin tocar el suelo suma <strong>+1 al multiplicador</strong> con cada enlace.</p>
+      <p data-i18n-html="arcade.card1.body">Las <strong>volteretas</strong> (flips) se leen del estado de flip del animador y se <strong>pagan al completar</strong> el truco. Encadenar <em>links</em> sin tocar el suelo suma <strong>+1 al multiplicador</strong> con cada enlace.</p>
     </div>
     <div class="card">
       <h3>Score HUD + Riser Audio</h3>
       <div class="meta" data-i18n="arcade.card2.meta">Feedback al vuelo</div>
-      <p style="font-size:13px;" data-i18n-html="arcade.card2.body">HUD de puntuación en pantalla con el multiplicador en vivo. Un <strong>riser</strong> de audio marca el pico del combo cuando el multiplicador sube.</p>
+      <p data-i18n-html="arcade.card2.body">HUD de puntuación en pantalla con el multiplicador en vivo. Un <strong>riser</strong> de audio marca el pico del combo cuando el multiplicador sube.</p>
     </div>
     <div class="card">
-      <h3 data-i18n="arcade.card3.h3">Capa de UI Completa</h3>
-      <div class="meta" data-i18n="arcade.card3.meta">Menú principal · Settings · Pausa</div>
-      <p style="font-size:13px;" data-i18n-html="arcade.card3.body">El <strong>menú principal</strong>, la pantalla de <strong>settings</strong> y el <strong>overlay de pausa</strong> (Esc) cubren toda la navegación fuera de la partida.</p>
+      <h3 data-i18n="arcade.card3.h3">Libre No Es Arcade Sin HUD</h3>
+      <div class="meta" data-i18n="arcade.card3.meta">Puntuación inerte</div>
+      <p data-i18n-html="arcade.card3.body">En <strong>Modo Libre</strong> el sistema de puntos <strong>no corre</strong>: sale en su primera línea, no suena el riser y la marca guardada nunca se toca. No es un HUD escondido sobre un marcador en marcha.</p>
     </div>
   </div>
 </section>
 
 <!-- ════════════════════════════════════════════════ FRASES MINIMAX ════════════════════════════════════════════════ -->
 <section id="frases" class="reveal">
-  <div class="section-label">02</div>
-  <h2 data-i18n="frases.h2">Frases Generadas con MiniMax</h2>
-  <p data-i18n-html="frases.intro">5 frases de voz generadas por <strong>MiniMax</strong>, cada una con su <strong>subtítulo</strong> en pantalla y un <strong>slider de volumen</strong> de voz. Los subtítulos siguen el idioma de la UI vía <strong>i18n</strong>; el audio se mantiene siempre en español. Cada clip es un reproductor independiente: no interactúa con la música de fondo de la página (<code class="mono">audio-ost</code>).</p>
-  <p style="font-size:12px; color:var(--dim); margin-top:4px;"><span data-i18n="label.commits">Commits:</span> <code class="mono">5ec7cf8</code> · <code class="mono">c8f401c</code></p>
+  <div class="def-head">
+    <h2 data-i18n="frases.h2">Frases Generadas con MiniMax</h2>
+    <p class="lede" data-i18n-html="frases.intro">5 frases de voz generadas por <strong>MiniMax</strong>, cada una con su <strong>subtítulo</strong> en pantalla y un <strong>slider de volumen</strong> de voz. Los subtítulos siguen el idioma de la UI vía <strong>i18n</strong>; el audio se mantiene siempre en español. Cada clip es un reproductor independiente: no interactúa con la música de fondo de la página (<code class="mono">audio-ost</code>).</p>
+  <p class="hint"><span data-i18n="label.commits">Commits:</span> <code class="mono">5ec7cf8</code> · <code class="mono">c8f401c</code></p>
+  </div>
 
-  <div class="card-grid">
+  <div class="card-grid voice-grid">
     <div class="card">
       <h3>audio-01</h3>
-      <p style="font-size:13px;" data-i18n="voice.line1">«No sé si Mary Jane sabrá que en NaN hay tokens ilimitados, ¿debería volver a llamarla y decírselo?»</p>
-      <audio controls preload="none" src="game/assets/audios/audio-01.mp3"></audio>
+      <p data-i18n="voice.line1">«No sé si Mary Jane sabrá que en NaN hay tokens ilimitados, ¿debería volver a llamarla y decírselo?»</p>
+      <audio controls preload="none" src="assets/audios/audio-01.mp3"></audio>
     </div>
     <div class="card">
       <h3>audio-02</h3>
-      <p style="font-size:13px;" data-i18n="voice.line2">«Un gran modelo conlleva un gran... ¿harness?»</p>
-      <audio controls preload="none" src="game/assets/audios/audio-02.mp3"></audio>
+      <p data-i18n="voice.line2">«Un gran modelo conlleva un gran... ¿harness?»</p>
+      <audio controls preload="none" src="assets/audios/audio-02.mp3"></audio>
     </div>
     <div class="card">
       <h3>audio-03</h3>
-      <p style="font-size:13px;" data-i18n="voice.line3">«¿Soy un héroe... o un prompt con telarañas?»</p>
-      <audio controls preload="none" src="game/assets/audios/audio-03.mp3"></audio>
+      <p data-i18n="voice.line3">«¿Soy un héroe... o un prompt con telarañas?»</p>
+      <audio controls preload="none" src="assets/audios/audio-03.mp3"></audio>
     </div>
     <div class="card">
       <h3>audio-04</h3>
-      <p style="font-size:13px;" data-i18n="voice.line4">«La IA me creó, los chistes son culpa de Adrián»</p>
-      <audio controls preload="none" src="game/assets/audios/audio-04.mp3"></audio>
+      <p data-i18n="voice.line4">«La IA me creó, los chistes son culpa de Adrián»</p>
+      <audio controls preload="none" src="assets/audios/audio-04.mp3"></audio>
     </div>
     <div class="card">
       <h3>audio-05</h3>
-      <p style="font-size:13px;" data-i18n="voice.line5">«No es un bug, es una característica»</p>
-      <audio controls preload="none" src="game/assets/audios/audio-05.mp3"></audio>
+      <p data-i18n="voice.line5">«No es un bug, es una característica»</p>
+      <audio controls preload="none" src="assets/audios/audio-05.mp3"></audio>
     </div>
   </div>
 </section>
 
 <!-- ════════════════════════════════════════════════ IMÁGENES DEL CIELO ════════════════════════════════════════════════ -->
 <section id="sky" class="reveal">
-  <div class="section-label">03</div>
-  <h2 data-i18n="sky.h2">Imágenes del Cielo</h2>
-  <p data-i18n-html="sky.intro">Las 3 placas fotográficas que usa el <strong>SkyDome</strong> para proyectar el cielo del juego, tratadas para ser coherentes entre sí y con la niebla.</p>
-  <p style="font-size:12px; color:var(--dim); margin-top:4px;"><span data-i18n="label.commits">Commits:</span> <code class="mono">afcad45</code> · <code class="mono">2b1d49d</code> · <code class="mono">68fc169</code> · <code class="mono">91aeefd</code></p>
+  <div class="def-head">
+    <h2 data-i18n="sky.h2">Imágenes del Cielo</h2>
+    <p class="lede" data-i18n-html="sky.intro">Las 3 placas fotográficas que usa el <strong>SkyDome</strong> para proyectar el cielo del juego, tratadas para ser coherentes entre sí y con la niebla.</p>
+  <p class="hint"><span data-i18n="label.commits">Commits:</span> <code class="mono">afcad45</code> · <code class="mono">2b1d49d</code> · <code class="mono">68fc169</code> · <code class="mono">91aeefd</code></p>
+  </div>
 
-  <div class="gallery">
+  <div class="gallery gallery--baseline">
     <figure>
-      <img src="game/assets/sky.webp" alt="Placa diurna estereográfica del SkyDome" loading="lazy">
+      <img src="assets/sky.webp" alt="Placa diurna estereográfica del SkyDome" loading="lazy">
       <figcaption data-i18n="sky.fig.day">Day — placa diurna estereográfica, luz de mediodía.</figcaption>
     </figure>
     <figure>
-      <img src="game/assets/sky-night.webp" alt="Placa nocturna del SkyDome" loading="lazy">
+      <img src="assets/sky-night.webp" alt="Placa nocturna del SkyDome" loading="lazy">
       <figcaption data-i18n="sky.fig.night">Night — placa nocturna con handover al atardecer.</figcaption>
     </figure>
     <figure>
-      <img src="game/assets/sky-horizon.webp" alt="Franja de horizonte azimuthal" loading="lazy">
+      <img src="assets/sky-horizon.webp" alt="Franja de horizonte azimuthal" loading="lazy">
       <figcaption data-i18n="sky.fig.horizon">Horizon — franja azimuthal que coincide con la niebla por construcción.</figcaption>
     </figure>
   </div>
@@ -2002,11 +2064,13 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
 
 <!-- ════════════════════════════════════════════════ CONFIG + MÚSICA ════════════════════════════════════════════════ -->
 <section id="config" class="reveal">
-  <div class="section-label">04</div>
-  <h2 data-i18n="config.h2">Variables de Configuración y Música</h2>
+  <div class="def-head">
+    <h2 data-i18n="config.h2">Variables de Configuración y Música</h2>
+    <p class="lede" data-i18n="config.lede">Las constantes que gobiernan el mundo, los presupuestos que el harness verifica en cada captura, y los ajustes de audio y tiempo que se afinaron a mano al final.</p>
+  </div>
 
-  <h3 style="margin-top:20px; margin-bottom:12px;">GLOBALS (src/contracts/globals.ts)</h3>
-  <table class="budget-table">
+  <h4>GLOBALS (src/contracts/globals.ts)</h4>
+  <div class="table-scroll"><table class="budget-table">
     <tr>
       <th>Variable</th>
       <th data-i18n="th.value">Valor</th>
@@ -2032,10 +2096,10 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
       <td class="num">-32 m/s²</td>
       <td data-i18n="cfg.purpose.gravity">Aceleración gravitatoria del mundo</td>
     </tr>
-  </table>
+  </table></div>
 
-  <h3 style="margin-top:20px; margin-bottom:12px;" data-i18n="config.budgetblock.h3">Bloque Budget</h3>
-  <table class="budget-table">
+  <h4 data-i18n="config.budgetblock.h3">Bloque Budget</h4>
+  <div class="table-scroll"><table class="budget-table">
     <tr>
       <th data-i18n="th.metric">Métrica</th>
       <th>Budget</th>
@@ -2064,67 +2128,55 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
       <td><code class="mono">maxLoadMs</code></td>
       <td class="num">3000</td>
     </tr>
-  </table>
+  </table></div>
 
-  <h3 style="margin-top:28px; margin-bottom:12px;" data-i18n="config.tuning.h3">Tuning y Settings fuera del loop</h3>
+  <h4 data-i18n="config.tuning.h3">Tuning y Settings fuera del loop</h4>
   <div class="card-grid">
     <div class="card">
       <h3 data-i18n="config.card1.h3">Dilatación Temporal Global</h3>
       <div class="meta">commit <code class="mono">ed37934</code></div>
-      <p style="font-size:13px;" data-i18n-html="config.card1.body">El tiempo del mundo se ralentiza y se siente más cómodo con una <strong>dilatación global del 25%</strong>: <code class="mono">k=0.75</code> aplicado con <code class="mono">gravityScale</code>.</p>
+      <p data-i18n-html="config.card1.body">El tiempo del mundo se ralentiza y se siente más cómodo con una <strong>dilatación global del 25%</strong>: <code class="mono">k=0.75</code> aplicado con <code class="mono">gravityScale</code>.</p>
     </div>
     <div class="card">
       <h3>voiceInterval</h3>
       <div class="meta" data-i18n="config.card2.meta">Frecuencia de voces</div>
-      <p style="font-size:13px;" data-i18n-html="config.card2.body"><code class="mono">20s</code> de tiempo de juego entre cada voz del personaje cuando el modo arcade está activo.</p>
+      <p data-i18n-html="config.card2.body"><code class="mono">20s</code> de tiempo de juego entre cada voz del personaje cuando el modo arcade está activo.</p>
     </div>
     <div class="card">
       <h3 data-i18n="config.card3.h3">Settings del Juego</h3>
-      <p style="font-size:13px;" data-i18n-html="config.card3.body"><strong>Sliders independientes</strong> de volumen SFX / voz / música, <strong>toggle</strong> del overlay de debug, e <strong>idioma EN/ES</strong> vía i18n.</p>
+      <p data-i18n-html="config.card3.body"><strong>Sliders independientes</strong> de volumen SFX / voz / música, <strong>toggle</strong> del overlay de debug, e <strong>idioma EN/ES</strong> vía i18n.</p>
     </div>
   </div>
 
-  <h3 style="margin-top:28px; margin-bottom:12px;" data-i18n="config.music.h3">Música — OST</h3>
+  <h4 data-i18n="config.music.h3">Música — OST</h4>
   <div class="card-grid">
     <div class="card">
       <h3 data-i18n="config.card4.h3">OST de Fondo con Bus de Música</h3>
       <div class="meta" data-i18n="config.card4.meta">bus de volumen de música</div>
-      <p style="font-size:13px;" data-i18n-html="config.card4.body">El <strong>OST de fondo</strong> tiene su propio <strong>bus de volumen de música</strong> con slider independiente — el mismo <code class="mono">ost.mp3</code> que suena en esta página.</p>
+      <p data-i18n-html="config.card4.body">El <strong>OST de fondo</strong> tiene su propio <strong>bus de volumen de música</strong> con slider independiente — el mismo <code class="mono">ost.mp3</code> que suena en esta página.</p>
     </div>
   </div>
-  <p style="font-size:12px; color:var(--dim); margin-top:8px;"><span data-i18n="label.commits">Commits:</span> <code class="mono">b99c107</code> · <code class="mono">ec65228</code></p>
+  <p class="hint"><span data-i18n="label.commits">Commits:</span> <code class="mono">b99c107</code> · <code class="mono">ec65228</code></p>
 </section>
 
-<!-- ════════════════════════════════════════════════ ANTES Y DESPUÉS ════════════════════════════════════════════════ -->
-<section id="compare" class="reveal">
-  <div class="section-label">05</div>
-  <h2 data-i18n="compare.h2">Antes y Después</h2>
-  <p data-i18n="compare.intro">El contraste entre la primera fase y el resultado final: de una ciudad de cajas placeholder a una ciudad procedencial con fachadas, sombras, niebla y cielo fotográfico.</p>
-
-  <div class="compare-grid compare-split">
-    <figure>
-      <img src="captures/2026-08-08T16-08-48Z/shots/hero.png" alt="Fase 1 — ciudad de cajas" loading="lazy">
-      <figcaption data-i18n-html="compare.fig1">Fase 1 — Agosto 2026 (commit <code class="mono">202c1f4</code>). La ciudad de cajas placeholder del primer loop.</figcaption>
-    </figure>
-    <figure>
-      <video controls muted playsinline preload="metadata" src="game/assets/hero-video.mov" style="width:100%; display:block;"></video>
-      <figcaption data-i18n="compare.fig2">Versión final — el mismo metraje del hero de Inicio, con el juego ya pulido.</figcaption>
-    </figure>
+<!-- ════════════════════════════════════════════════ PULIDO DE CIERRE ════════════════════════════════════════════════ -->
+<section id="cierre" class="reveal">
+  <div class="def-head">
+    <h2 data-i18n="cierre.h2">Pulido de Cierre</h2>
+    <p class="lede" data-i18n="cierre.lede">Lo último que se tocó antes de dar el juego por terminado. Ninguno de estos ajustes pertenece a un loop de agentes: son las correcciones sueltas que quedan cuando ya sólo falta mirar el juego y arreglar lo que molesta.</p>
   </div>
 
-  <div class="card" style="margin-top:16px;">
-    <h3 data-i18n="compare.otherh3">Otros ajustes fuera del loop</h3>
-    <ul class="learning-list" style="margin-top:8px;">
-      <li><span class="num">▸</span><span class="text" data-i18n="compare.li1">Alturas de ciudad subidas: bins +25% y altura mínima duplicada dos veces.</span></li>
-      <li><span class="num">▸</span><span class="text" data-i18n="compare.li2">Depth buffer logarítmico — mata el flicker del asfalto.</span></li>
-      <li><span class="num">▸</span><span class="text" data-i18n="compare.li3">Tráfico adelgazado ~45%.</span></li>
-      <li><span class="num">▸</span><span class="text" data-i18n="compare.li4">Tobillos retorcidos arreglados en el rig.</span></li>
-      <li><span class="num">▸</span><span class="text" data-i18n="compare.li5">Edificios procedurales propios reemplazando el set GLB.</span></li>
-      <li><span class="num">▸</span><span class="text" data-i18n="compare.li6">Streaks de viento como líneas aditivas de 1px.</span></li>
-      <li><span class="num">▸</span><span class="text" data-i18n="compare.li7">Edificios bajos swingable.</span></li>
-      <li><span class="num">▸</span><span class="text">i18n EN/ES.</span></li>
-    </ul>
-  </div>
+  <ul class="learning-list">
+    <li><span class="num" aria-hidden="true"></span><span class="text" data-i18n="cierre.li1">Alturas de ciudad subidas: bins +25% y altura mínima duplicada dos veces.</span></li>
+    <li><span class="num" aria-hidden="true"></span><span class="text" data-i18n="cierre.li2">Depth buffer logarítmico — mata el flicker del asfalto.</span></li>
+    <li><span class="num" aria-hidden="true"></span><span class="text" data-i18n="cierre.li3">Tráfico adelgazado ~45%.</span></li>
+    <li><span class="num" aria-hidden="true"></span><span class="text" data-i18n="cierre.li4">Tobillos retorcidos arreglados en el rig.</span></li>
+    <li><span class="num" aria-hidden="true"></span><span class="text" data-i18n="cierre.li5">Edificios procedurales propios reemplazando el set GLB.</span></li>
+    <li><span class="num" aria-hidden="true"></span><span class="text" data-i18n="cierre.li6">Streaks de viento como líneas aditivas de 1px.</span></li>
+    <li><span class="num" aria-hidden="true"></span><span class="text" data-i18n="cierre.li7">Edificios bajos swingable.</span></li>
+    <li><span class="num" aria-hidden="true"></span><span class="text" data-i18n="cierre.li8">Cada partida empieza de pie en el suelo, no cayendo del cielo.</span></li>
+    <li><span class="num" aria-hidden="true"></span><span class="text">i18n EN/ES.</span></li>
+  </ul>
 </section>
 
 </main>
@@ -2132,17 +2184,27 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
 
 <!-- ════════════════════════════════════════════════ BACKGROUND OST ════════════════════════════════════════════ -->
 <!-- Fuera de los tab-panels: la música persiste al cambiar de pestaña. -->
-<audio id="audio-ost" loop preload="auto" src="game/assets/ost.mp3"></audio>
+<audio id="audio-ost" loop preload="auto" src="assets/ost.mp3"></audio>
 
 <!-- ════════════════════════════════════════════ FOOTER ══════════════════════════════════════════ -->
 <footer>
-  <div class="links">
-    <a href="https://github.com/adriaansaeez/spider-NaN">GitHub</a> ·
-    <a href="game/">Jugar</a> ·
-    <a href="#">NaN Gauntlet Loop Challenge</a>
+  <div class="footer-grid">
+    <div class="links">
+      <a href="https://github.com/anomalyco/gauntlet-loop">GitHub</a>
+      <a href="https://x.com/adriaansaeez" target="_blank" rel="noopener">X</a>
+      <a href="https://adriaansaeez.com" target="_blank" rel="noopener" aria-label=".adriaansaeez — website">.adriaansaeez</a>
+      <a href="progress/index.html">Progress &amp; Evidence</a>
+      <a href="game/">Jugar</a>
+    </div>
+    <div class="colophon">
+      <p data-i18n="footer.line1">.Spider-NaN · Agosto 2026 · Opus + DeepSeek V4 Flash + GPT-5.5 · Three.js + TypeScript + Vite</p>
+      <p>NaN Gauntlet Loop Challenge</p>
+    </div>
   </div>
-  <p data-i18n="footer.line1">Spider-NaN · Agosto 2026 · Opus + DeepSeek V4 Flash + GPT-5.5 · Three.js + TypeScript + Vite</p>
-  <p style="margin-top:4px;">NaN Gauntlet Loop Challenge</p>
+  <svg class="footer-mark" viewBox="0 0 1000 174" preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false">
+    <text x="0" y="166" textLength="958" lengthAdjust="spacing" font-size="166">.SPIDER-NaN</text>
+    <rect class="dot" x="972" y="146" width="20" height="20"/>
+  </svg>
 </footer>
 
 <!-- ════════════════════════════════════════════ SCROLL REVEAL + TABS ════════════════════════════════════════════ -->
@@ -2284,36 +2346,25 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
   "nav.iteracion": "Iteration",
   "nav.metricas": "Metrics",
   "nav.referencia": "Reference",
-  "nav.capturas": "Captures",
   "nav.evidencia": "Evidence",
   "nav.arcade": "Arcade",
   "nav.frases": "Lines",
   "nav.cielo": "Sky",
   "nav.config": "Config",
-  "nav.comparar": "Before/After",
+  "nav.menu": "Menu",
+  "nav.cierre": "Final Polish",
   "promptblock.label": "INITIAL PROMPT",
-  "hero.tag": "NaN Gauntlet Loop · August 2026",
   "hero.subtitle.inicio": "Web-swinging game in Three.js, built with an AI-agent gauntlet loop: <strong>Opus orchestrates</strong>, <strong>DeepSeek V4 Flash builds</strong>, <strong>GPT-5.5 critiques</strong>.",
-  "hero.meta.orchestrator": "<strong>Opus 5</strong> orchestrator",
-  "hero.meta.builder": "<strong>DeepSeek V4 Flash</strong> builder",
-  "badge.determinism": "Determinism PASS",
-  "badge.consoleclean": "Console clean",
-  "label.about": "About the project",
   "intro.h2": "Build Log",
-  "intro.p1": "<strong>Spider-NaN</strong> is a web-swinging game built in <strong>Three.js</strong> from scratch, using a <strong>gauntlet loop</strong>: a continuous <em>build → critique → fix</em> cycle where three AI agents collaborate.",
+  "intro.p1": "<strong>.Spider-NaN</strong> is a web-swinging game built in <strong>Three.js</strong> from scratch, using a <strong>gauntlet loop</strong>: a continuous <em>build → critique → fix</em> cycle where three AI agents collaborate.",
   "intro.p2": "<strong>Opus</strong> acts as orchestrator and makes the architectural decisions. <strong>DeepSeek V4 Flash</strong> builds each system: procedural city, swing physics, camera, effects, and visual polish. <strong>GPT-5.5</strong> critiques the implementation against real reference material, frame by frame, and rejects anything that falls short of AAA quality.",
   "intro.p3": "This log documents every loop, its iterations, and the performance and determinism evidence that validated the final result.",
-  "intro.desktopOnly": "Note: the game is controlled with a keyboard and a mouse (WASD + pointer lock). There are no touch controls, so it can only be played on a desktop or laptop computer.",
-  "label.explore": "Explore",
   "explora.h2": "Explore the Process",
   "explora.p": "Two complete build cycles, documented phase by phase.",
   "inicio.play": "Play",
   "inicio.play.desc": "Jump straight into the game: web-swinging through the procedural city.",
-  "play.desktopOnly": "Desktop only",
-  "play.touchNote": "This is a touch device: the game needs a keyboard and a mouse. Open it on a computer to play.",
   "cta.loop1.desc": "Procedural Manhattan city, web-swing physics, chase camera, state machine, and an automated evidence pipeline.",
   "cta.loop2.desc": "Authored building models, photographic day/night lighting, articulated hero animations, and visual effects.",
-  "label.compare.videos": "Video comparison",
   "inicio.compara.h2": "Then & Now — in Motion",
   "inicio.compara.p": "The first recorded footage of the game next to the definitive result after the gauntlet loop: the same camera chasing the same hero, but in a city that stopped being gray boxes.",
   "inicio.compara.left": "Initial Version — First Loop",
@@ -2324,12 +2375,28 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
   "prompt.annot1": "The prompt asks for AAA quality but with a bounded scope: web-swinging, not a full game.",
   "prompt.annot2": "The Gauntlet pattern: separate builder + critic. The critic is “really harsh” — it doesn’t approve mediocrity.",
   "prompt.annot3": "The key: compare against real reference material (Spider-Man 2 PS5), not a subjective opinion.",
-  "arch.h2": "Loop Architecture",
+  "arch.h2": "Gauntlet Loop Architecture",
   "arch.intro": "The Gauntlet Loop is a continuous cycle: <strong>build → critique → fix → evidence</strong>. Three AI models work in tandem: Opus orchestrates, DeepSeek V4 Flash builds, GPT-5.5 critiques.",
   "arch.node.human.label": "Human",
   "arch.node.human.sub": "Defines vision",
   "arch.node.prompt.sub": "Specification",
   "arch.node.builder.sub": "Builder",
+  "nav.metraje": "Footage",
+  "prompt2.h2": "The Loop 2 Prompt",
+  "prompt2.intro": "The first loop delivered a city that worked but looked like a prototype. The second loop's brief does not touch a single line of physics: it goes after what you see, and with Loop 1's performance budget already frozen.",
+  "promptblock2.label": "LOOP 2 PROMPT",
+  "prompt2.annot1": "The scope is fenced off in the first line: do not touch the pendulum solver Loop 1 left at PASS.",
+  "prompt2.annot2": "Four subsystems in parallel, each with its own critic. Every demand is measurable: silhouettes readable at 40-80px, fog with no discontinuity, facades that read as architecture.",
+  "prompt2.annot3": "The constraint that defines Loop 2: raise the visual bar without spending the performance headroom Loop 1 left verified. A prettier, slower result is a FAIL.",
+  "metraje.h2": "First-Loop Footage",
+  "metraje.intro": "Frames from the oldest surviving recording, spread across the day/night cycle. This is where the second loop started: the city holds up and the swinging works, but the facades are flat bands and the skyline loses depth with distance.",
+  "cap.l1.01": "Midday — the hero mid-arc, sun high behind the haze.",
+  "cap.l1.02": "Looking up — the web line taut against a sixty-floor facade.",
+  "cap.l1.03": "Dusk — the block grid seen from the top of the swing.",
+  "cap.l1.04": "Sundown — warm facades with the windows already lit.",
+  "cap.l1.05": "Night — the blue canyon lit only by its windows.",
+  "cap.l1.06": "Small hours — the full skyline from the top of the arc.",
+  "arch.loop.label": "FAIL → back to the builder",
   "arch.node.evidence.label": "Evidence",
   "arch.node.evidence.sub": "Captures + metrics",
   "arch.models.h3": "The 3 Models of the Loop",
@@ -2341,7 +2408,7 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
   "arch.stack.h3": "Tech Stack",
   "arch.stack.body": "\n      <strong>Runtime:</strong> Three.js 0.169 · TypeScript · Vite<br>\n      <strong>Platform:</strong> Orca (multi-agent IDE)<br>\n      <strong>Evidence:</strong> Playwright · Node.js capture pipeline<br>\n      <strong>Rendering:</strong> InstancedMesh · Custom shaders · Frustum culling\n    ",
   "arch.contract.h3": "Communication Contract",
-  "arch.contract.body": "Agents <strong>never import from each other</strong>. They communicate only through <code class=\"mono\" style=\"color:var(--accent);\">src/contracts/index.ts</code>, which defines the <code class=\"mono\">AnchorQuery</code> interface. This lets the city be swapped out without touching the swing system.",
+  "arch.contract.body": "Agents <strong>never import from each other</strong>. They communicate only through <code class=\"mono\">src/contracts/index.ts</code>, which defines the <code class=\"mono\">AnchorQuery</code> interface. This lets the city be swapped out without touching the swing system.",
   "fases.h2": "Build Phases",
   "fases.intro": "The first iteration of the Gauntlet Loop. Each phase was built by DeepSeek V4 Flash (builder) and reviewed by GPT-5.5 (critic), with Opus (orchestrator) coordinating the flow.",
   "fases.swipehint": "← Swipe to see all phases →",
@@ -2399,17 +2466,6 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
   "ref.fig.06": "06 · Inverted swing — lowest point of the swing",
   "ref.docs.h3": "Analysis Documents",
   "ref.docs.body": "\n      The reference-pack contains 17 analysis documents: STATE_MACHINE.md, SWING_ANALYSIS.md, ANCHOR_ANALYSIS.md, CAMERA_ANALYSIS.md, GAME_FEEL.md, MEASUREMENTS.md, VISUAL_FEEDBACK.md, and more. Each document quantifies specific aspects of the reference gameplay so the critic has objective data, not opinions.\n    ",
-  "cap.h2": "Game Captures",
-  "cap.intro": "Automated captures from the evidence harness. Time-of-day sweep showing the procedural city under dynamic lighting.",
-  "cap.fig.hero": "Hero — main game view",
-  "cap.fig.noon": "Noon — peak lighting",
-  "cap.fig.sunset": "Sunset — warm tones",
-  "cap.fig.evening": "Night — emissive windows active",
-  "cap.fig.midnight": "Midnight — dark ambience",
-  "cap.fig.sunrise": "Sunrise — soft transition",
-  "cap.fig.morning": "Morning — side light",
-  "cap.fig.lateafternoon": "Late afternoon — long shadows",
-  "hero.tag.loop2": "Loop 2 — Visual Polish · August 2026",
   "hero.subtitle.loop2": "From prototypes to product: building models, photographic lighting, articulated animations, and visual effects — all driven by the same builder + critic cycle.",
   "hero2.meta.subsystems": "<strong>4 subsystems</strong> in parallel",
   "hero2.meta.commits": "<strong>~20 commits</strong> of visual polish",
@@ -2484,7 +2540,7 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
   "fig.swingvariants": "SWING — 3 variants: SCISSOR / CANNONBALL / LAYOUT",
   "fig.swingsheet": "Comparison of the 3 SWING variants: SCISSOR (long diagonal with wide V), CANNONBALL (compact ball), LAYOUT (inverted cross with extended arms)",
   "evid2.fliph3": "Flip Resolution — Telemetry",
-  "evid2.flipfix.body": "\n      <strong>Before (ITER1):</strong> Hero emitted 214.7° of flip pitch entering WALL_RUN. The old mechanism accelerated a cut-short flip over 0.18s, leaking intermediate pitch into contact states.<br><br>\n      <strong>Fix:</strong> State-exact resolution — the first non-airborne frame IS the whole turn. Pitch/roll = 0° from that frame. Three independent gates: FlipController zeroing, isSurfaceContactState at rig application, MotionSample zeroing.<br><br>\n      <strong>After (ITER2):</strong> Flip pitch on WALL_RUN contact frame: <span style=\"color: var(--ok); font-weight: 700;\">0.0°</span>\n    ",
+  "evid2.flipfix.body": "\n      <strong>Before (ITER1):</strong> Hero emitted 214.7° of flip pitch entering WALL_RUN. The old mechanism accelerated a cut-short flip over 0.18s, leaking intermediate pitch into contact states.<br><br>\n      <strong>Fix:</strong> State-exact resolution — the first non-airborne frame IS the whole turn. Pitch/roll = 0° from that frame. Three independent gates: FlipController zeroing, isSurfaceContactState at rig application, MotionSample zeroing.<br><br>\n      <strong>After (ITER2):</strong> Flip pitch on WALL_RUN contact frame: <span class=\"measured-inline\">0.0°</span>\n    ",
   "evid2.fog.before.h3": "Before — Discontinuous Fog",
   "evid2.fog.before.body": "\n        Discontinuity at y=20/y=80. Featureless pale field above. Brown-mauve void below. Skyline at 235m with no layered depth. Every camera altitude created a visible \"cut\".\n      ",
   "evid2.fog.after.h3": "After — Continuous Fog",
@@ -2493,26 +2549,21 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
   "evid2.asphalt.body": "\n        World-space UV override via onBeforeCompile. One tile = 4m independent of instance scale. Anisotropic filtering. Material color 0xffffff so the texture IS the albedo.\n      ",
   "evid2.pavement.h3": "Pavement (Sidewalks)",
   "evid2.pavement.body": "\n        Procedural texture with disposal pipeline. Triple-multiply bug fix: material color must not multiply the texture. Disposal on chunk teardown.\n      ",
-  "hero.tag.def": "NaN Gauntlet Loop · Final · post-Loop 2",
-  "hero.def.h1": "Final <span>—</span>",
-  "hero.def.subtitle": "Everything the author did <strong>outside the agents</strong>: arcade mode with combo scoring, MiniMax-generated lines, photographic sky, configuration, and closing polish.",
-  "hero.def.meta1": "<strong>Arcade</strong> + Tony Hawk combo",
-  "hero.def.meta2": "<strong>MiniMax</strong> voices with subtitles",
-  "hero.def.meta3": "<strong>3 plates</strong> of photographic sky",
-  "badge.5voices": "5 AI voices",
-  "badge.skydome3": "SkyDome 3 plates",
+  "hero.def.h1": "Final",
+  "hero.def.subtitle": "The finished game and its front door: <strong>menu, modes, settings, and pause</strong>. Plus everything the author did <strong>outside the agents</strong>: arcade scoring, MiniMax voice lines, a photographic sky, and the final polish.",
+  "hero.def.meta1": "<strong>4 screens</strong> over a living street",
+  "hero.def.meta2": "<strong>Arcade</strong> + Tony Hawk combo",
+  "hero.def.meta3": "<strong>MiniMax</strong> voice lines with subtitles",
   "arcade.h2": "Arcade Mode",
-  "arcade.intro": "Beyond the agent loops, the author added an <strong>arcade mode</strong> with an initial <em>free vs arcade</em> choice that enables the scoring system. <strong>Flips</strong> are read from the animator's flip state and pay out on completion; <em>chain links</em> without touching the ground add <strong>+1 to the multiplier</strong>. A <strong>score HUD</strong> and an audio <em>riser</em> accompany the Tony Hawk-style scoring.",
-  "arcade.modeimg.alt": "Mode select screen — Free vs Arcade",
-  "arcade.modeimg.caption": "Mode select screen — Free (no scoring system) vs Arcade (scoring active).",
+  "arcade.intro": "Once the mode is picked, the fifth screen is not a menu: it is the HUD. <strong>Flips</strong> are read from the animator's flip state and paid out when they land; <em>links</em> chained without touching the ground add <strong>+1 to the multiplier</strong>. An audio <em>riser</em> marks the peak of the combo.",
   "arcade.card1.h3": "Tony Hawk-Style Scoring",
   "arcade.card1.meta": "Combo on contact",
   "arcade.card1.body": "<strong>Flips</strong> are read from the animator's flip state and <strong>pay out on completing</strong> the trick. Chaining <em>links</em> without touching the ground adds <strong>+1 to the multiplier</strong> with each link.",
   "arcade.card2.meta": "Feedback on the fly",
   "arcade.card2.body": "On-screen score HUD with a live multiplier. An audio <strong>riser</strong> marks the combo peak as the multiplier climbs.",
-  "arcade.card3.h3": "Full UI Layer",
-  "arcade.card3.meta": "Main menu · Settings · Pause",
-  "arcade.card3.body": "The <strong>main menu</strong>, the <strong>settings</strong> screen, and the <strong>pause overlay</strong> (Esc) cover all navigation outside of a run.",
+  "arcade.card3.h3": "Libre Is Not Arcade Without a HUD",
+  "arcade.card3.meta": "Inert scoring",
+  "arcade.card3.body": "In <strong>Modo Libre</strong> the score system <strong>does not run</strong>: it returns on its first line, the riser never fires, and the stored record is never touched. It is not a hidden HUD over a live scorer.",
   "label.commits": "Commits:",
   "frases.h2": "MiniMax-Generated Lines",
   "frases.intro": "5 voice lines generated with <strong>MiniMax</strong>, each with an on-screen <strong>subtitle</strong> and a voice <strong>volume slider</strong>. Subtitles follow the UI language via <strong>i18n</strong>; the audio always stays in Spanish. Each clip is an independent player: it doesn't interact with the page's background music (<code class=\"mono\">audio-ost</code>).",
@@ -2544,20 +2595,43 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
   "config.card4.h3": "Background OST with Music Bus",
   "config.card4.meta": "music volume bus",
   "config.card4.body": "The <strong>background OST</strong> has its own <strong>music volume bus</strong> with an independent slider — the same <code class=\"mono\">ost.mp3</code> playing on this page.",
-  "compare.h2": "Before & After",
-  "compare.intro": "The contrast between the first phase and the final result: from a city of placeholder boxes to a procedural city with facades, shadows, fog, and a photographic sky.",
-  "compare.fig1": "Phase 1 — August 2026 (commit <code class=\"mono\">202c1f4</code>). The placeholder-box city from the first loop.",
-  "compare.fig2": "Final version — the same footage as the Home hero, with the game now polished.",
-  "compare.otherh3": "Other Tweaks Outside the Loop",
-  "compare.li1": "City heights raised: bins +25% and minimum height doubled twice.",
-  "compare.li2": "Logarithmic depth buffer — kills the asphalt flicker.",
-  "compare.li3": "Traffic thinned ~45%.",
-  "compare.li4": "Twisted ankles fixed in the rig.",
-  "compare.li5": "Custom procedural buildings replacing the GLB set.",
-  "compare.li6": "Wind streaks as 1px additive lines.",
-  "compare.li7": "Swingable low-rise buildings.",
-  "footer.line1": "Spider-NaN · August 2026 · Opus + DeepSeek V4 Flash + GPT-5.5 · Three.js + TypeScript + Vite",
-  "page.title": "Spider-NaN — Dev Log"
+  "menu.h2": "The Front Door",
+  "menu.lede": "The game no longer starts already running. It starts on a title screen that is <strong>not an image</strong>: it is a locked camera shot of a street that is still running behind the menu, so traffic drives past, window lights come up, and the hero breathes. Four screens, one state machine, and not a single new scene object holding it up.",
+  "menu.measured.label": "Menu measured at",
+  "menu.measured.console": "clean console",
+  "plate.main.h3": "Main Menu",
+  "plate.main.p1": "<strong>Jugar</strong> (Play), <strong>Ajustes</strong> (Settings), and <strong>Salir</strong> (Exit). Simulation is paused and scoring is <strong>disarmed</strong>: no mode has been chosen yet, so nothing can be accumulating a run in the background.",
+  "plate.main.p2": "The shot uses <code class=\"mono\">fov 36</code> against the chase camera's 70: the long lens compresses the avenue into the wall of facades the shot is about.",
+  "plate.main.alt": "Main menu of .Spider-NaN over a city street",
+  "plate.modes.h3": "Choose Mode",
+  "plate.modes.p1": "<strong>Jugar</strong> does not start the run: it asks which kind of run. <strong>Modo Arcade</strong> scores swings, air time, and flips; <strong>Modo Libre</strong> scores nothing.",
+  "plate.modes.p2": "The mode is set <strong>when a run starts</strong>, never by pausing, so <code class=\"mono\">Esc \u2192 Reanudar</code> never changes it. The camera does not move: it is the same shot as the title.",
+  "plate.modes.alt": "Mode selection screen: Modo Arcade and Modo Libre",
+  "plate.settings.h3": "Settings",
+  "plate.settings.p1": "Three independent volumes (<strong>effects</strong>, <strong>music</strong>, and <strong>voices</strong>), plus the <strong>debug overlay</strong>, <strong>classic mode</strong>, and <strong>EN/ES language</strong>. Values persist in <code class=\"mono\">localStorage</code>.",
+  "plate.settings.p2": "The panel opens from the title screen <em>and</em> from pause, so <strong>Volver</strong> (Back) remembers who called it. That is also why it is the only state that <strong>does not touch the camera</strong>: it cannot know which of the two it is in.",
+  "plate.settings.alt": "Settings panel with volumes, debug, classic mode, and language",
+  "plate.pause.h3": "Pause",
+  "plate.pause.p1": "Opened by <code class=\"mono\">Esc</code> or by losing <em>pointer lock</em>. Simulation stops but the world <strong>keeps rendering</strong> behind it: the run freezes where it was, in plain sight.",
+  "plate.pause.p2": "The menu backdrop is not armed here; the camera is still the run's. <strong>Salir al Men\u00fa</strong> resets through the same path as <code class=\"mono\">__GAUNTLET__.reset()</code> and returns to the title.",
+  "plate.pause.alt": "Pause overlay over the frozen run",
+  "plate.arcade.h3": "Score HUD",
+  "plate.arcade.p1": "Points, a live multiplier, and the name of the trick just paid out: here <code class=\"mono\">GRAN AIRE +3,500</code> with the multiplier at <strong>\u00d77</strong> after six links without touching the ground.",
+  "plate.arcade.p2": "The record (<strong>MEJOR</strong>) lives in the corner and only Arcade ever writes it. The control strip retires itself after 45 s.",
+  "plate.arcade.alt": "Arcade HUD showing 11,764 points, a x7 multiplier, and the GRAN AIRE trick",
+  "config.lede": "The constants that govern the world, the budgets the harness checks on every capture, and the audio and timing settings tuned by hand at the end.",
+  "cierre.h2": "Final Polish",
+  "cierre.lede": "The last things touched before the game was called finished. None of these belong to an agent loop: they are the loose fixes left over when all that remains is to look at the game and repair what bothers you.",
+  "cierre.li1": "City heights raised: bins +25% and minimum height doubled twice.",
+  "cierre.li2": "Logarithmic depth buffer — kills the asphalt flicker.",
+  "cierre.li3": "Traffic thinned ~45%.",
+  "cierre.li4": "Twisted ankles fixed in the rig.",
+  "cierre.li5": "Custom procedural buildings replacing the GLB set.",
+  "cierre.li6": "Wind streaks as 1px additive lines.",
+  "cierre.li7": "Swingable low-rise buildings.",
+  "cierre.li8": "Every run now starts standing on the ground, not falling out of the sky.",
+  "footer.line1": ".Spider-NaN · August 2026 · Opus + DeepSeek V4 Flash + GPT-5.5 · Three.js + TypeScript + Vite",
+  "page.title": ".Spider-NaN — Development Logs"
 };
 
   function getLang() {
@@ -2623,7 +2697,6 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
   if (!audio || !btn) return;
 
   var LS_KEY = 'gauntlet-ost-muted';
-  var icon = btn.querySelector('.icon');
   var label = btn.querySelector('.label');
   var muted = localStorage.getItem(LS_KEY) === '1';
   var interactionHandled = false;
@@ -2639,11 +2712,11 @@ Don't stop until each sub-agent is utterly wowed with the quality when compared 
   function reflect() {
     var lang = (window.getGauntletLang && window.getGauntletLang()) || 'es';
     var s = SOUND_STR[lang] || SOUND_STR.es;
-    icon.textContent = muted ? '🔇' : '🔊';
     label.textContent = muted ? s.off : s.on;
     btn.classList.toggle('muted', muted);
     btn.setAttribute('aria-pressed', muted ? 'true' : 'false');
     btn.setAttribute('aria-label', muted ? s.ariaUnmute : s.ariaMute);
+    btn.setAttribute('title', muted ? s.ariaUnmute : s.ariaMute);
   }
 
   document.addEventListener('gauntlet-lang-change', reflect);
