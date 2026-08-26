@@ -61,6 +61,12 @@
       }
       body.game-ui-active #score-hud,
       body.game-ui-active #score-record { display: none; }
+      /* The dash readiness mark (src/fx/DashHud.ts) is play-time furniture: it
+         goes away with the rest of the HUD whenever a menu owns the frame.
+         Its own rule rather than an extra selector on the one above, because it
+         needs !important: DashHud drives its display through an inline style,
+         exactly as #hud does, and the score HUD does not. */
+      body.game-ui-active #dash-hud { display: none !important; }
       /* The debug HUD must not expose the engine telemetry over the title and
          mode screens. It stays visible in-game and on pause, exactly as today.
          Game.ts owns #hud visibility through an inline style (hud.setVisible),

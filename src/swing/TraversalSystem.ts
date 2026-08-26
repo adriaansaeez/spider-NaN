@@ -20,6 +20,11 @@ type TraversalDebugApi = Record<string, unknown> & {
     accumulatorSeconds: number; lastSubsteps: number;
     droppedTime: number; droppedSteps: number;
     fixedStep: number; maxSubsteps: number;
+    /** Deliberate web presses this run, and how many produced a real rope.
+     *  The ratio IS the "clicks that fire nothing" complaint, as a number. */
+    webPressAttempts: number; webPressAttached: number;
+    /** Seconds left on the dash cooldown, mirrored for headless probes. */
+    dashCooldown: number;
   };
 };
 
@@ -96,6 +101,9 @@ export class TraversalSystem implements System {
     justReleased: false,
     justGroundPull: false,
     altitude: 0,
+    webRefused: false,
+    dashCooldown: 0,
+    dashCooldownTotal: T.dashCooldown,
   };
 
   /** Effective swing pivot — the anchor may be slid out of the building volume
@@ -118,6 +126,10 @@ export class TraversalSystem implements System {
   private attachTimer = 0;
   private releaseTimer = 0;
   private dashTimer = 0;
+  /** Seconds left before the dash may fire again; mirrored onto the snapshot
+   *  for the HUD. Counted from activation, so it is already running during the
+   *  dash itself. */
+  private dashCooldownTimer = 0;
   private dashDir = new THREE.Vector3();
   private attachQueryTimer = 0;
   private lean = 0;
@@ -128,6 +140,25 @@ export class TraversalSystem implements System {
   private swingPeakPlanar = 0;
   /** True while a player-initiated ground web-pull is still winching the long
    *  street rope down to a legal nadir ceiling. Drives the faster reel rate. */
+  /** True while an AIMED (player-pressed) swing is still winching its shot down
+   *  to the legal ceiling. Same idea as groundPullReeling, its own rate. */
+  /** Deliberate presses seen, and presses that ended in a rope. Diagnostic
+   *  only — never read by gameplay. Exposed on __GAUNTLET__.traversalDebug so
+   *  "many clicks fire nothing" can be measured instead of argued about. */
+  private webPressAttempts = 0;
+  private webPressAttached = 0;
+  /** One-shot within a frame: `input.swingPressed` stays true for every substep
+   *  of that frame, so without this a single click would be counted (and the
+   *  aimed query run) up to MAX_SUBSTEPS times. */
+  private pressPendingAim = false;
+  /** Aim direction for a press. Its own vector rather than the t1..t4 scratch:
+   *  the picker holds this across a raycast plus a seven-step sweep, and t3 is
+   *  reused by horizForward() inside that window. */
+  private readonly aimDir = new THREE.Vector3();
+  private pressReeling = false;
+  /** True for the whole life of a swing that started as an aimed press, so its
+   *  rope floor stays pressMinRope rather than the automatic minRope. */
+  private pressSwing = false;
   private groundPullReeling = false;
   /** True for the whole life of a swing that STARTED as a ground pull. Such a
    *  swing hangs off a deliberately lower anchor, so it uses the ground-pull
@@ -198,9 +229,13 @@ export class TraversalSystem implements System {
     s.justAttached = false;
     s.justReleased = false;
     s.justGroundPull = false;
+    s.webRefused = false;
 
     // Immediate press beats the cooldown.
-    if (this.input.swingPressed) this.attachQueryTimer = 0;
+    if (this.input.swingPressed) {
+      this.attachQueryTimer = 0;
+      this.pressPendingAim = true;
+    }
 
     // --- fixed-timestep accumulator ------------------------------------------
     //
@@ -241,6 +276,7 @@ export class TraversalSystem implements System {
       this.step(step);
     }
 
+    s.dashCooldown = this.dashCooldownTimer;
     s.speed = Math.hypot(s.velocity.x, s.velocity.z);
     s.altitude = Math.max(0, s.position.y - this.world.surfaceHeightAt(s.position.x, s.position.z));
     s.anchorPosition = this.anchor ? this.pivot : null;
@@ -262,8 +298,20 @@ export class TraversalSystem implements System {
     this.prevPos.copy(s.position);
     this.updateFacadeContactExit();
 
-    // Dash interrupts everything except itself.
-    if (this.input.dashPressed && s.state !== 'DASH') {
+    // Ticked here, in the fixed step, rather than in update(): the cooldown is
+    // a gameplay budget and must advance on SIMULATED time like everything else,
+    // so a replay and a live run count it down identically.
+    if (this.dashCooldownTimer > 0) {
+      this.dashCooldownTimer = Math.max(0, this.dashCooldownTimer - dt);
+    }
+
+    // Dash interrupts everything except itself — while it is off cooldown.
+    // A press during the cooldown is DROPPED, never queued: the input layer
+    // buffers a press for a few frames so a slightly early tap still counts,
+    // and queueing it here would turn that buffer into "the dash fires by
+    // itself the instant the cooldown expires", which is not what the player
+    // asked for.
+    if (this.input.dashPressed && s.state !== 'DASH' && this.dashCooldownTimer <= 0) {
       this.startDash();
       return;
     }
@@ -477,7 +525,18 @@ export class TraversalSystem implements System {
   /** Longest rope whose nadir still clears the surface, for the current pivot. */
   /** Shortest rope this swing may be reeled to. See groundPullSwing. */
   private get minRopeNow(): number {
-    return this.groundPullSwing ? T.groundPullMinRope : T.minRope;
+    if (this.groundPullSwing) return T.groundPullMinRope;
+    if (this.pressSwing) return T.pressMinRope;
+    return T.minRope;
+  }
+
+  /** Longest rope this swing may hold. An aimed shot is allowed to reach further
+   *  than the automatic query does (pressWebRange), and updateRope clamps to
+   *  this EVERY step — so without the press case a long aimed rope would be
+   *  snapped back to maxWebDistance on the first frame, which is a teleport
+   *  toward the anchor by any other name. */
+  private get maxRopeNow(): number {
+    return this.pressSwing ? T.pressWebRange : T.maxWebDistance;
   }
 
   /** Headroom the nadir of this swing must keep over the hazard surface. */
@@ -506,12 +565,15 @@ export class TraversalSystem implements System {
     if (pump > 0) target *= 1 - T.ropePump * pump * dt;
     if (target > this.ropeCeiling) target = this.ropeCeiling;
     if (target < this.ropeLength) {
-      const rate = this.groundPullReeling ? T.groundPullReelRate : T.reelInRate;
+      const rate = this.groundPullReeling
+        ? T.groundPullReelRate
+        : this.pressReeling ? T.pressReelRate : T.reelInRate;
       this.ropeLength = Math.max(target, this.ropeLength - rate * dt);
     }
-    this.ropeLength = THREE.MathUtils.clamp(this.ropeLength, this.minRopeNow, T.maxWebDistance);
-    if (this.groundPullReeling && this.ropeLength <= this.ropeCeiling + 0.05) {
+    this.ropeLength = THREE.MathUtils.clamp(this.ropeLength, this.minRopeNow, this.maxRopeNow);
+    if (this.ropeLength <= this.ropeCeiling + 0.05) {
       this.groundPullReeling = false;
+      this.pressReeling = false;
     }
   }
 
@@ -856,6 +918,7 @@ export class TraversalSystem implements System {
     this.dashDir.copy(this.t1);
     s.velocity.copy(this.dashDir).multiplyScalar(T.dashSpeed);
     this.dashTimer = T.dashTime;
+    this.dashCooldownTimer = T.dashCooldown;
     this.detach(false);
     this.clearWallRunContact();
     this.setState('DASH');
@@ -942,11 +1005,47 @@ export class TraversalSystem implements System {
   // -------------------------------------------------------------------------
   // Attach / release
   // -------------------------------------------------------------------------
+  /**
+   * Aimed shot: the player pressed, so the anchor comes from where they are
+   * LOOKING, on the relaxed press* gates, and the rope is allowed to start long
+   * and be winched down. Returns true when a rope actually exists afterwards.
+   *
+   * Separate from the automatic path on purpose — see the "aimed press" block
+   * in tuning.ts. Nothing here can loosen the held-web attach that carries the
+   * swing rhythm.
+   */
+  private tryAimedAttach(): boolean {
+    const s = this.snapshot;
+    const alt = s.position.y - this.world.surfaceHeightAt(s.position.x, s.position.z);
+    if (alt > T.pressMaxAltitude) return false;
+    this.aimDir.copy(this.horizForward());
+    const a = this.picker.pickAimed(s.position, this.aimDir, this.input.moveX);
+    if (!a) return false;
+    return this.beginAttach(a, true);
+  }
+
   /** Returns true when an attach happened this step. */
   private tryAutoAttach(dt: number): boolean {
     const s = this.snapshot;
     if (this.anchor) return false;
     if (!this.input.swing && !this.input.swingPressed) return false;
+
+    // A DELIBERATE PRESS IS NOT THE AUTOMATIC LOOP. It gets the aimed path
+    // first, and it clears the reattach lock on the way in: that lock exists to
+    // stop the AUTOMATIC re-grab from ratcheting a chain of ever-higher swings,
+    // and applying it to a click made the button dead for its whole duration
+    // right after every release — one of the two big causes of "muchos clicks
+    // sin lanzar ninguna telaraña".
+    const pressed = this.input.swingPressed;
+    if (pressed && this.pressPendingAim) {
+      this.pressPendingAim = false;
+      this.webPressAttempts++;
+      this.reattachLock = 0;
+      if (this.tryAimedAttach()) {
+        this.webPressAttached++;
+        return true;
+      }
+    }
 
     const alt = s.position.y - this.world.surfaceHeightAt(s.position.x, s.position.z);
     // About to run out of sky: take any legal anchor, ignoring the rhythm gates.
@@ -956,13 +1055,16 @@ export class TraversalSystem implements System {
 
     // Grab near or after the top of the ballistic arc, never while still
     // rocketing upward out of a release — that is what ratchets a chain.
-    if (!this.input.swingPressed && !urgent && s.velocity.y > T.attachMaxUpward) {
+    if (!pressed && !urgent && s.velocity.y > T.attachMaxUpward) {
       return false;
     }
     // NOTE: there is no minimum-speed veto any more. Iter1 and iter2 both
     // failed on it: it converted a slow patch into a 17.9 s traversal lock-out.
-    const altCeil = this.input.swingPressed ? T.pressMaxAltitude : T.attachMaxAltitude;
-    if (alt > altCeil) return false;
+    const altCeil = pressed ? T.pressMaxAltitude : T.attachMaxAltitude;
+    if (alt > altCeil) {
+      if (pressed) s.webRefused = true;
+      return false;
+    }
 
     // Inside the attach window, query on a short cadence so a terminal-speed
     // dive still grabs a web before reaching the facade.
@@ -971,8 +1073,15 @@ export class TraversalSystem implements System {
     this.attachQueryTimer = T.attachQueryInterval;
 
     const a = this.picker.pick(s.position, s.velocity, this.input.moveX);
-    if (!a) return false;
-    return this.beginAttach(a);
+    if (!a || !this.beginAttach(a)) {
+      // A press that reaches here has been through the aimed path AND the
+      // automatic one and produced nothing. Say so, once, so the feel layer can
+      // answer the click — silence is indistinguishable from a dropped input.
+      if (pressed) s.webRefused = true;
+      return false;
+    }
+    if (pressed) this.webPressAttached++;
+    return true;
   }
 
   /**
@@ -1002,10 +1111,18 @@ export class TraversalSystem implements System {
 
     // Aim, not velocity: standing still, velocity is ~0 and carries no
     // direction at all (see AnchorPicker.pickGroundPull).
-    const a = this.picker.pickGroundPull(s.position, this.horizForward(), this.input.moveX);
-    if (a && this.beginGroundPullAttach(a)) return true;
+    this.aimDir.copy(this.horizForward());
+    const a = this.picker.pickGroundPull(s.position, this.aimDir, this.input.moveX);
+    if (a && this.beginGroundPullAttach(a)) {
+      // tryAutoAttach ran first and may already have flagged this press as
+      // refused; a rope now exists, so that flag was premature.
+      s.webRefused = false;
+      if (this.input.swingPressed) this.webPressAttached++;
+      return true;
+    }
 
     if (!this.input.swingPressed) return false;
+    s.webRefused = true;
     s.velocity.y = Math.max(s.velocity.y, T.jumpSpeed);
     this.groundPullReeling = false;
     this.groundPullSwing = false;
@@ -1025,6 +1142,8 @@ export class TraversalSystem implements System {
     // clearance are the ground-pull ones for its whole life, not just while
     // the fast reel is running.
     this.groundPullSwing = true;
+    this.pressSwing = false;
+    this.pressReeling = false;
     this.resolvePivot(a, s.position, s.velocity);
     this.updateRopeCeiling();
     this.swingHasDescended = false;
@@ -1088,13 +1207,20 @@ export class TraversalSystem implements System {
   }
 
   /** Returns false (and attaches nothing) if the resolved pivot cannot carry a
-   *  legal arc — refusing is correct, the caller has a recovery move. */
-  private beginAttach(a: Anchor): boolean {
+   *  legal arc — refusing is correct, the caller has a recovery move.
+   *
+   *  `aimed` = this anchor came from the player's own click (pickAimed), not
+   *  from the automatic loop. It swaps the reel-budget refusal for the same
+   *  raw-ceiling test the ground pull uses and winches the excess at
+   *  pressReelRate instead. The nadir rule is untouched either way. */
+  private beginAttach(a: Anchor, aimed = false): boolean {
     const s = this.snapshot;
     this.anchor = a;
     // A normal airborne attach is never a ground pull, whatever the last one
     // was: this swing uses the airborne rope floor and nadir clearance.
     this.groundPullSwing = false;
+    this.pressSwing = aimed;
+    this.pressReeling = false;
     this.resolvePivot(a, s.position, s.velocity);
     this.updateRopeCeiling();
     this.swingHasDescended = false;
@@ -1108,12 +1234,30 @@ export class TraversalSystem implements System {
     // anchor (no-teleport, a passing row we must not regress) — and is reeled
     // down to the ceiling during the downswing. If that reel is too big to
     // finish in time, this anchor cannot produce a legal arc: refuse it.
-    if (dist - this.ropeCeiling > T.reelBudget || dist > this.ropeCeiling * T.maxReelRatio) {
+    if (aimed) {
+      // The UNFLOORED ceiling, exactly as beginGroundPullAttach tests it:
+      // updateRopeCeiling floors at minRopeNow, so comparing this.ropeCeiling
+      // against that same floor could never fail. hazardY is the highest ground
+      // under the whole look-ahead path, so this still catches an anchor the
+      // picker's single surface sample was happy with.
+      const rawCeiling = this.pivot.y - (this.hazardY + T.nadirClearance);
+      if (rawCeiling < T.pressMinRope || dist < 1e-4) {
+        this.anchor = null;
+        this.pressSwing = false;
+        this.pivot.set(0, 0, 0);
+        return false;
+      }
+      // Excess over the ceiling is winched down at pressReelRate rather than
+      // being a reason to refuse the player's own shot.
+      this.pressReeling = dist > this.ropeCeiling;
+      this.ropeLength = THREE.MathUtils.clamp(dist, T.pressMinRope, T.pressWebRange);
+    } else if (dist - this.ropeCeiling > T.reelBudget || dist > this.ropeCeiling * T.maxReelRatio) {
       this.anchor = null;
       this.pivot.set(0, 0, 0);
       return false;
+    } else {
+      this.ropeLength = THREE.MathUtils.clamp(dist, T.minRope, T.maxWebDistance);
     }
-    this.ropeLength = THREE.MathUtils.clamp(dist, T.minRope, T.maxWebDistance);
 
     // Engage the taut constraint immediately: kill outward radial velocity so
     // the web redirects the existing momentum instead of the player flying
@@ -1226,6 +1370,8 @@ export class TraversalSystem implements System {
       this.swingPeakPlanar = 0;
       this.groundPullReeling = false;
       this.groundPullSwing = false;
+      this.pressReeling = false;
+      this.pressSwing = false;
       this.snapshot.anchorPosition = null;
       if (emitReleased) this.snapshot.justReleased = true;
     }
@@ -1584,6 +1730,7 @@ export class TraversalSystem implements System {
     this.attachTimer = 0;
     this.releaseTimer = 0;
     this.dashTimer = 0;
+    this.dashCooldownTimer = 0;
     this.attachQueryTimer = 0;
     this.lean = 0;
     this.stuckTime = 0;
@@ -1601,7 +1748,12 @@ export class TraversalSystem implements System {
     this.swingPeakPlanar = 0;
     this.groundPullReeling = false;
     this.groundPullSwing = false;
+    this.pressReeling = false;
+    this.pressSwing = false;
     this.groundPullQueryTimer = 0;
+    this.pressPendingAim = false;
+    this.webPressAttempts = 0;
+    this.webPressAttached = 0;
     this.picker.reset();
     // A replay must start from an empty accumulator, otherwise run N inherits
     // run N-1's leftover fraction of a substep and the first frame after reset
@@ -1711,6 +1863,9 @@ export class TraversalSystem implements System {
       droppedSteps: this.droppedSteps,
       fixedStep: GLOBALS.fixedStep,
       maxSubsteps: TraversalSystem.MAX_SUBSTEPS,
+      webPressAttempts: this.webPressAttempts,
+      webPressAttached: this.webPressAttached,
+      dashCooldown: this.dashCooldownTimer,
     };
   }
 

@@ -96,6 +96,16 @@ export interface PlayerSnapshot {
   justGroundPull: boolean;
   /** Height above the surface directly below; drives ground-proximity speed cues. */
   altitude: number;
+  /** True on the frame a deliberate web press found NO legal anchor. One-shot.
+   *  A press that fires nothing used to be indistinguishable from a dropped
+   *  input; the feel layer answers this so a click always reads as heard. */
+  webRefused: boolean;
+  /** Seconds remaining on the dash cooldown; 0 = dash available. Counted from
+   *  ACTIVATION, so it is already ticking during the dash itself. */
+  dashCooldown: number;
+  /** Full length (s) of that cooldown, so a HUD can draw a ratio without
+   *  importing swing tuning. Constant at runtime. */
+  dashCooldownTotal: number;
 }
 
 // ---------------------------------------------------------------------------

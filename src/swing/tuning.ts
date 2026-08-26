@@ -274,6 +274,18 @@ export const SWING_TUNING = {
    * planar-only assist gated by dashAnchorAlignMin.
    */
   dashAnchorSnap: 0,
+  /**
+   * Seconds between dashes, measured from ACTIVATION (not from the end of the
+   * zip), so the whole move is one 5 s cycle and the usable wait after the
+   * 0.4267 s dash is ~4.57 s. Owner-specified.
+   *
+   * NOT time-dilated. Every other duration in this file carries a x1.3333
+   * dilation factor because it is a physics timing that has to stay in step
+   * with the dilated velocities; this one is a PLAYER-FACING budget the owner
+   * named in real seconds, and the HUD counts it down in real seconds. Dilating
+   * it would put 6.67 on screen where 5 was asked for.
+   */
+  dashCooldown: 5,
 
   // --- limits ---------------------------------------------------------------
   /** Max planar (horizontal) speed, m/s.
@@ -333,9 +345,14 @@ export const SWING_TUNING = {
   groundPullMinRope: 10,
   /** Min horizontal distance (m) to a ground-pull anchor. The airborne 24 m
    *  exists to stop winch-like near-vertical arcs at cruise speed; from a
-   *  standstill the near facade is the whole point of the move, and 14 m still
-   *  keeps the line at a readable angle rather than straight overhead. */
-  groundPullMinLateral: 14,
+   *  standstill the near facade is the whole point of the move.
+   *
+   *  Was 14. Lowered to match pressMinLateral, because 14 m still rejected the
+   *  building the player was standing against and pointing at — the same dead
+   *  click, just on the street instead of in the air. Six metres is the floor
+   *  that keeps the line off vertical; anything above that is the player's
+   *  call, not the tuning's. */
+  groundPullMinLateral: 6,
   /** Nadir clearance (m) for a ground-pull arc. HIGHER than the airborne
    *  nadirClearance of 1: a short rope swings through a tight arc, so the same
    *  1 m of headroom leaves much less room for error at the bottom. Two metres
@@ -368,6 +385,56 @@ export const SWING_TUNING = {
    *  at the ceiling.
    *  Dilated x0.75: 36 m/s. */
   groundPullReelRate: 36,
+
+  // --- aimed press: the player's own shot ------------------------------------
+  //
+  // WHY THIS PATH EXISTS. Everything above governs the AUTOMATIC attach — the
+  // held web that keeps the swing rhythm going, tuned against the reference
+  // pack and deliberately picky, because a bad automatic grab ruins an arc the
+  // player did not ask for. But the same gates were also deciding what happened
+  // when the player DELIBERATELY CLICKED, and there they read as a dead button:
+  // the façade you are looking at is rejected for being closer than
+  // minAnchorLateral (24 m), a long rope is rejected by reelBudget, and a click
+  // in the first reattachLock seconds after a release does nothing at all. The
+  // owner's report was exactly that — "muchos clicks sin lanzar ninguna
+  // telaraña".
+  //
+  // So a press now takes its own path with its own numbers. Two rules keep this
+  // from becoming a back door into the tuned automatic attach:
+  //   1. Every gate here is a separate `press*` constant. Loosening the manual
+  //      shot can never loosen automatic anchor selection.
+  //   2. nadirClearance is NOT relaxed. It is the one gate that stops a swing
+  //      passing under the street, so the aimed path CLAMPS the rope to the
+  //      legal ceiling and reels the excess in fast — it never attaches to an
+  //      arc that would put the body through the tarmac.
+  /** Reach (m) of a deliberate aimed shot. Longer than maxWebDistance: the
+   *  player is pointing at a specific building and expects to hit it. */
+  pressWebRange: 150,
+  /** Min horizontal distance (m) to an aimed anchor. The airborne 24 m exists
+   *  to stop winch-like near-vertical arcs at cruise speed; when the player
+   *  aims at a façade beside them, that near line IS the shot they asked for.
+   *  Six metres still rejects an anchor essentially straight overhead. */
+  pressMinLateral: 6,
+  /** Shortest rope an aimed shot may hang. Below this the constraint solve gets
+   *  stiff and the "swing" is really a yank. */
+  pressMinRope: 8,
+  /** Rope reel-in rate (m/s) while an aimed attach is winching a long shot down
+   *  to its legal ceiling. Between reelInRate (7.5, a slow pump) and
+   *  groundPullReelRate (36, a two-handed haul): the excess has to be gone
+   *  before the nadir, but an aimed mid-air shot should still read as a rope
+   *  going taut rather than a winch. */
+  pressReelRate: 24,
+  /** Query directions (degrees off the player's aim) an aimed press sweeps when
+   *  the crosshair raycast misses. Much narrower than groundPullAimSweepDeg
+   *  (which reaches +/-152 deg, because from a standstill "nothing in front of
+   *  me" should still find a building): a press in the air is a statement about
+   *  WHERE, so a shot must never fire behind the player. +/-52 deg is the widest
+   *  that still reads as "roughly where I was pointing". */
+  pressAimSweepDeg: [0, 14, -14, 30, -30, 52, -52],
+  /** Score penalty per FULL 180 deg a candidate is off the player's aim. Higher
+   *  than groundPullAimPenalty: on an aimed shot, agreeing with the crosshair
+   *  matters more than the quality of the resulting arc. */
+  pressAimPenalty: 2.2,
   /** Altitude (m) below which a descending, un-webbed player with no legal
    *  anchor gets an emergency web-line lift instead of being allowed to fall to
    *  the street. This is the recovery move that lets the attach gates REFUSE a

@@ -8,9 +8,13 @@ import { MotionController, type FlipKind } from './motion';
 import { SpeedOverlay } from './SpeedOverlay';
 import { AudioSystem } from './AudioSystem';
 import { ControlPrompt } from './ControlPrompt';
+import { DashHud } from './DashHud';
 import { cameraHandle } from '../camera/cameraHandle';
 import { inputHandle } from '../input/inputHandle';
 import { isClassicMode, onClassicModeChange } from '../core/ClassicMode';
+
+/** Seconds the crosshair stays dimmed after a web press that found nothing. */
+const REFUSED_DIM_TIME = 0.16;
 
 /** Which hero representation renders. Gameplay is identical in both. */
 export type CharacterMode = 'procedural' | 'model';
@@ -80,6 +84,13 @@ export class FxSystem implements System {
   private overlay: SpeedOverlay;
   private audio: AudioSystem;
   private prompt: ControlPrompt;
+  private dashHud: DashHud;
+  /** The crosshair element, for the refused-web acknowledgement. Looked up
+   *  lazily because index.html owns it and it may not exist in a test page. */
+  private crosshair: HTMLElement | null = null;
+  private crosshairLookedUp = false;
+  /** Seconds left on the "that press found nothing" dim. */
+  private refusedDim = 0;
   private navLight: THREE.PointLight;
   private nightFill: THREE.HemisphereLight;
   private streetSkimLight: THREE.PointLight;
@@ -127,6 +138,7 @@ export class FxSystem implements System {
     this.overlay = new SpeedOverlay(scene);
     this.audio = new AudioSystem();
     this.prompt = new ControlPrompt();
+    this.dashHud = new DashHud();
     this.navLight = new THREE.PointLight(
       T.navigationLightColor,
       0,
@@ -433,6 +445,7 @@ export class FxSystem implements System {
     if (this.ambientOnly === on) return;
     this.ambientOnly = on;
     this.prompt.setSuspended(on);
+    this.dashHud.setSuspended(on);
     // The overlay is speed-driven and the menu hero stands still, so it is
     // already at zero; simply not ticking it is enough.
   }
@@ -455,11 +468,38 @@ export class FxSystem implements System {
     this.overlay.update(p, dt);
     this.audio.update(p, dt);
     this.prompt.update(dt);
+    this.dashHud.update(p, dt);
+    this.updateRefusedCue(p, dt);
 
     this.updateWeb(p, dt);
     this.updatePullWebs(p, dt, groundPull);
     this.updateDashThrow(p);
     this.updateGlint(dt);
+  }
+
+  /**
+   * A deliberate web press that found no anchor used to do nothing at all, which
+   * is indistinguishable from a dropped input — the player clicks again, and
+   * again. This is the smallest honest answer: the crosshair drops in value for
+   * a beat and comes back.
+   *
+   * Deliberately NOT a flash, a bloom, a scale pop or a colour: a refusal is not
+   * an event worth decorating, it is a "heard you, nothing there".
+   */
+  private updateRefusedCue(p: PlayerSnapshot, dt: number): void {
+    if (!this.crosshairLookedUp) {
+      this.crosshair = document.getElementById('crosshair');
+      this.crosshairLookedUp = true;
+    }
+    const el = this.crosshair;
+    if (!el) return;
+    if (p.webRefused) this.refusedDim = REFUSED_DIM_TIME;
+    if (this.refusedDim <= 0) return;
+    this.refusedDim = Math.max(0, this.refusedDim - dt);
+    const k = this.refusedDim / REFUSED_DIM_TIME;
+    // 0.7 is the resting opacity set in index.html; ease back up to it.
+    el.style.opacity = (0.7 - 0.48 * k).toFixed(3);
+    if (this.refusedDim <= 0) el.style.opacity = '';
   }
 
   /** The snapshot the rig poses from — the live one unless a critic pinned a state. */
@@ -739,6 +779,7 @@ export class FxSystem implements System {
     this.overlay.dispose();
     this.audio.dispose();
     this.prompt.dispose();
+    this.dashHud.dispose();
     this.navLight.removeFromParent();
     this.nightFill.removeFromParent();
     this.streetSkimLight.removeFromParent();

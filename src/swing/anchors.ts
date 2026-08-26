@@ -138,6 +138,7 @@ export class AnchorPicker {
     lateralBias: number,
     minRope: number = T.minRope,
     nadirClearance: number = T.nadirClearance,
+    maxDistance: number = T.maxWebDistance,
   ): Anchor | null {
     // Raise the city's own height filter so it never even offers an anchor too
     // low to hang a legal arc from. This is the cheapest place to enforce the
@@ -148,7 +149,7 @@ export class AnchorPicker {
       origin,
       velocity,
       lateralBias,
-      maxDistance: T.maxWebDistance,
+      maxDistance,
       minHeightAbove: Math.max(T.minAnchorHeightAbove, needAbove),
     });
   }
@@ -176,6 +177,13 @@ export class AnchorPicker {
     );
     let best: Anchor | null = null;
     let bestScore = -Infinity;
+    // The crosshair first, exactly as pickAimed does it: if the player is
+    // standing on the street pointing at a tower, that tower is the answer and
+    // no sweep or score should be able to talk them out of it.
+    // maxWebDistance, not pressWebRange: scoreGroundPull refuses anything longer
+    // anyway, so a longer ray would only cost steps to find a rejected anchor.
+    const hit = this.world.raycastAnchor(origin, forward, T.maxWebDistance);
+    if (hit && hit.structureId >= 0 && this.scoreGroundPull(hit, origin) > -Infinity) return hit;
     // AIM, not velocity. The city's query keeps only anchors in the forward
     // hemisphere of the direction it is handed, and from LANDED the player's
     // velocity is ~0, which the city resolves to a fixed -Z — so a standing
@@ -234,6 +242,116 @@ export class AnchorPicker {
     const heightScore = Math.min(1, above / 60);
     const latScore = 1 - Math.min(1, Math.abs(lat - T.idealLateral) / T.idealLateral);
     return heightScore * 1.6 + latScore * 0.8;
+  }
+
+  // ---------------------------------------------------------------------
+  // Aimed press: the player's own shot
+  // ---------------------------------------------------------------------
+
+  /**
+   * Anchor for a DELIBERATE web press, resolved from where the player is
+   * LOOKING rather than where they are travelling.
+   *
+   * The automatic path (`pick`) hands the city the player's VELOCITY, and the
+   * city keeps only anchors in the forward hemisphere of whatever direction it
+   * is given — correct for a held web that should grab ahead of travel, and
+   * exactly wrong for a click, which is a statement about a specific building.
+   * Aiming at a façade and getting a web fired somewhere else (or nowhere) is
+   * what the owner reported as "muchos clicks sin lanzar ninguna telaraña".
+   *
+   * Two stages, cheapest and most literal first:
+   *  1. The crosshair itself. `raycastAnchor` down the aim ray — if the player
+   *     is pointing at something webbable, that IS the answer, and no scoring
+   *     heuristic gets to overrule it.
+   *  2. A narrow cone sweep for the near miss, ranked by how far off the aim
+   *     each candidate sits, so a shot that grazes past a corner still fires at
+   *     the building the player clearly meant.
+   *
+   * Returns null only when nothing in the cone can hang a legal arc at all.
+   */
+  pickAimed(origin: Vector3, aim: Vector3, steer: number): Anchor | null {
+    // 1. What the crosshair is actually on.
+    // structureId < 0 is the city's "the ray hit bare ground, not a building"
+    // result. It is not something a web can hang from, so it never counts as a
+    // crosshair hit — otherwise aiming at the road would return a legal-looking
+    // anchor at street level.
+    const hit = this.world.raycastAnchor(origin, aim, T.pressWebRange);
+    if (hit && hit.structureId >= 0 && this.scoreAimed(hit, origin) > -Infinity) return hit;
+
+    // 2. Near miss. Never re-uses `pick`'s alternation memory: alternation
+    // exists to make the AUTOMATIC loop zig-zag down an avenue, and applying it
+    // to a manual shot would silently steer the player's own aim.
+    const biasBase = MathUtils.clamp(steer, -1, 1);
+    let best: Anchor | null = null;
+    let bestScore = -Infinity;
+    const sweep = T.pressAimSweepDeg;
+    for (let i = 0; i <= T.maxAnchorRetries; i++) {
+      const offDeg = sweep[i % sweep.length];
+      const off = (offDeg * Math.PI) / 180;
+      const cos = Math.cos(off);
+      const sin = Math.sin(off);
+      this.sweepDir.set(
+        aim.x * cos + aim.z * sin,
+        0,
+        -aim.x * sin + aim.z * cos,
+      );
+      const a = this.query(
+        origin, this.sweepDir, biasBase,
+        T.pressMinRope, T.nadirClearance, T.pressWebRange,
+      );
+      if (!a) continue;
+      let sc = this.scoreAimed(a, origin);
+      if (sc === -Infinity) continue;
+      sc -= (Math.abs(offDeg) / 180) * T.pressAimPenalty;
+      if (sc > bestScore) {
+        bestScore = sc;
+        best = a;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Gate + score for an aimed shot. Deliberately fewer refusals than `score`:
+   * a press is the player asking, so this rejects only what is physically
+   * unswingable, never what is merely un-ideal.
+   *
+   * DROPPED here (all present in the automatic `score`):
+   *  - `minAnchorLateral` 24 m -> `pressMinLateral` 6 m. The façade you are
+   *    standing beside and pointing at is the shot, not an error.
+   *  - `maxAnchorLateral`. Reach is bounded by `pressWebRange` in 3D; a second
+   *    planar cap on top of it only ever rejects a long shot the player aimed.
+   *  - `reelBudget` / `maxReelRatio`. A long rope is not illegal, it is a rope
+   *    with excess to winch — `pressReelRate` in TraversalSystem hauls it down
+   *    before the nadir instead of refusing the anchor.
+   *  - `nadirMax`. An arc that stays high is the player's choice to make.
+   *
+   * KEPT, and not negotiable: the rope ceiling must still be able to hold the
+   * nadir above the street (`nadirClearance`). That is the one gate whose
+   * absence puts the body through the tarmac, so an anchor too low to hang a
+   * legal arc from is still refused outright.
+   */
+  private scoreAimed(a: Anchor, origin: Vector3): number {
+    const lat = Math.hypot(a.position.x - origin.x, a.position.z - origin.z);
+    if (lat < T.pressMinLateral) return -Infinity;
+
+    const above = a.position.y - origin.y;
+    if (above < T.minAnchorHeightAbove) return -Infinity;
+
+    const rope = a.position.distanceTo(origin);
+    if (rope > T.pressWebRange) return -Infinity;
+
+    const surface = this.world.surfaceHeightAt(origin.x, origin.z);
+    const ropeCeiling = a.position.y - (surface + T.nadirClearance);
+    if (ropeCeiling < T.pressMinRope) return -Infinity;
+
+    // Everything below is preference only, and it is weak on purpose: on an
+    // aimed shot the aim penalty in pickAimed should dominate, so the building
+    // the player pointed at wins over a "better" arc off to one side.
+    const nadir = a.position.y - Math.min(rope, ropeCeiling);
+    const nadirScore = 1 - Math.min(1, Math.abs(nadir - (surface + T.nadirTarget)) / 60);
+    const latScore = 1 - Math.min(1, Math.abs(lat - T.idealLateral) / (T.idealLateral * 2));
+    return nadirScore * 0.6 + latScore * 0.4;
   }
 
   /** Remember an attached anchor and classify its side for alternation. */
