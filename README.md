@@ -17,8 +17,8 @@ The critic never reads the source. It only sees what comes out: screenshots, fra
 | Role | Model | What it did |
 |---|---|---|
 | Builder | **DeepSeek V4 Flash** | Procedural city, swing physics, camera, FX, visual polish |
-| Critic | **GPT-5.5** | Frame-by-frame comparison against reference, binary PASS/FAIL with evidence |
-| Orchestrator | **Claude Opus** | Architectural decisions, coordination of the flow |
+| Critic | **Opus 5** | Frame-by-frame comparison against reference, binary PASS/FAIL with evidence |
+| Orchestrator | **GLM 5.2** | Architectural decisions, coordination of the flow |
 | Voice | **MiniMax** | 5 voice lines with i18n subtitles |
 
 Arcade scoring, the photographic sky and the final polish were done by hand, outside the agents.
