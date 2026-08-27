@@ -1,10 +1,60 @@
+<img src="docs/brand/banner.png" alt=".Spider-NaN: web-swinging over a procedural city, built by an agent gauntlet loop" width="100%">
+
 # Spider-NaN
 
-A web-swinging game over a procedural city, built with **Three.js + TypeScript + Vite**, shipped alongside a **presentation site** documenting the entire construction process.
+A web-swinging game over a procedural city, built with **Three.js + TypeScript + Vite**, shipped alongside a **presentation site** that documents the entire construction process, failures included.
 
-The project was built with an **AI agent gauntlet loop**: specialized builder agents per system (city, swing physics, camera, animation, audio, UI) and independent **critic agents** judging the actual render against concrete visual references, sending the builder back with named weaknesses. Build → render → inspect → critique → improve, in a loop.
+Play it, and read every verdict, capture and metric behind it, at **<https://nan.builders>**.
 
-**Models used:** Opus 5 · DeepSeek V4 Flash · GPT-5.5
+---
+
+## Who built what
+
+The game was written by an **AI agent gauntlet loop**: a builder agent implements a system, an independent critic agent judges the *rendered result* against real reference footage, and sends the builder back with named weaknesses. Build → render → inspect → critique → improve.
+
+The critic never reads the source. It only sees what comes out: screenshots, frame bursts and live telemetry from `window.__GAUNTLET__`, compared against reference frames, scored against quantified PASS/FAIL thresholds fixed before the work started.
+
+| Role | Model | What it did |
+|---|---|---|
+| Builder | **DeepSeek V4 Flash** | Procedural city, swing physics, camera, FX, visual polish |
+| Critic | **GPT-5.5** | Frame-by-frame comparison against reference, binary PASS/FAIL with evidence |
+| Orchestrator | **Claude Opus** | Architectural decisions, coordination of the flow |
+| Voice | **MiniMax** | 5 voice lines with i18n subtitles |
+
+Arcade scoring, the photographic sky and the final polish were done by hand, outside the agents.
+
+## The verdicts
+
+The critic said FAIL 17 times. That is the part worth publishing.
+
+| Subsystem | Iterations | Verdict | Key change |
+|---|---|---|---|
+| City Iter2 | 2 | 5 PASS / 2 FAIL | Instance overflow, proportions, TOD ramps |
+| Buildings Visual | 1 | 4 PASS / 10 FAIL | Fog deleted the city, blank facades, inert models |
+| Buildings Perf | 1 | All PASS + 1 leak fix | GPU buffer leak found and fixed |
+| City Atmosphere | 2 | 21 PASS / 2 PARTIAL | Fog continuity, facades, tower palette |
+| City Life | 2 | 8 PASS / 0 FAIL | Buffer leak plateaued, heap honest |
+| Animation Iter1 | 1 | 2 PASS / 5 FAIL | Flip leak, unreadable variants |
+| Animation Iter2 | 2 | 6 PASS / 0 FAIL | Flip fixed, silhouettes, idle alive |
+
+**Total: 46 PASS · 17 FAIL · 2 PARTIAL.**
+
+## Where it landed
+
+| Measure | Value | Measure | Value |
+|---|---|---|---|
+| Frame rate | **120 FPS** | Draw calls | **73** |
+| Frame time (avg) | **8.33 ms** | Triangles | **581k** |
+| Frame time (p95) | **9.1 ms** | JS heap | **23 MB** |
+| Load time | **42 ms** | Console errors | **0** |
+| Buildings | **486 → 563** | Max height | **245 m** |
+| Hand-authored poses | **912** | Determinism | **PASS** |
+
+Determinism means the same seed produces a byte-identical city. `npm run capture` regenerates all of it.
+
+## Assets
+
+Not everything here is generated code, and it is worth being precise about it. The game uses a glTF character model, a photographic sky, music and audio, and the five MiniMax voice lines. Everything else, meaning the city, the swing physics, the camera, the effects and the UI, is code produced inside the loop. `~12k` lines across `32` TypeScript files, in `74` commits.
 
 ---
 
@@ -74,6 +124,8 @@ src/                  game source
 public/assets/        model, textures, audio, video
 presentacion/         presentation site (served at /)
 captures/ docs/ reference-pack/   media referenced by the presentation
+docs/animation/       animation comparisons against reference footage
+docs/ui/              menu, modes, settings and pause screens
 vite.config.ts        base '/game/' + dev-only mirror of the served layout
 Dockerfile            multi-stage build → nginx (/ = presentation, /game = game)
 ```
